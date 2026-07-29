@@ -1,11 +1,15 @@
-import { mockArticles } from "@/lib/mock-data";
+import { getArticles } from "@/lib/queries";
 
-export default function ActualitesPage() {
+export const revalidate = 300;
+
+export default async function ActualitesPage() {
+  const articles = await getArticles();
+
   return (
     <section className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-display text-4xl tracking-wide mb-6">ACTUALITÉS</h1>
       <div className="grid sm:grid-cols-2 gap-4">
-        {mockArticles.map((article) => (
+        {articles.map((article) => (
           <article
             key={article.id}
             className="bg-surface border border-white/10 rounded-lg p-4"
