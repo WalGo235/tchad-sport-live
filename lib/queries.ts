@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { createClient } from "./supabase/server";
 import type { MatchCardData, MatchStatus } from "@/components/MatchCard";
 
 function formatKickoff(dateString: string) {
@@ -36,6 +36,7 @@ function toMatchCard(row: MatchRow): MatchCardData {
 }
 
 export async function getMatches(): Promise<MatchCardData[]> {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("matches")
     .select(
@@ -58,6 +59,7 @@ export interface StandingRow {
 }
 
 export async function getStandings(limit?: number): Promise<StandingRow[]> {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("standings")
     .select("played, wins, draws, losses, points, team:teams(name)")
@@ -97,6 +99,7 @@ export interface ArticleRow {
 }
 
 export async function getArticles(): Promise<ArticleRow[]> {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("articles")
     .select("id, title, slug, content, author, published_at")
