@@ -1,24 +1,34 @@
 import Link from "next/link";
 import LiveTicker from "@/components/LiveTicker";
 import MatchCard from "@/components/MatchCard";
-import { mockArticles, mockMatches, mockStandings } from "@/lib/mock-data";
+import { getArticles, getMatches, getStandings } from "@/lib/queries";
 
-export default function HomePage() {
-  const featured = mockMatches[0];
+export const revalidate = 60;
+
+export default async function HomePage() {
+  const [matches, articles, standings] = await Promise.all([
+    getMatches(),
+    getArticles(),
+    getStandings(5),
+  ]);
+
+  const featured = matches[0];
 
   return (
     <>
-      <LiveTicker matches={mockMatches} />
+      <LiveTicker matches={matches} />
 
-      <section className="mx-auto max-w-6xl px-4 py-10">
-        <h1 className="font-display text-4xl sm:text-5xl tracking-wide mb-2">
-          MATCH À LA UNE
-        </h1>
-        <p className="text-muted mb-6">Le direct à ne pas manquer</p>
-        <div className="max-w-sm">
-          <MatchCard match={featured} />
-        </div>
-      </section>
+      {featured && (
+        <section className="mx-auto max-w-6xl px-4 py-10">
+          <h1 className="font-display text-4xl sm:text-5xl tracking-wide mb-2">
+            MATCH À LA UNE
+          </h1>
+          <p className="text-muted mb-6">Le direct à ne pas manquer</p>
+          <div className="max-w-sm">
+            <MatchCard match={featured} />
+          </div>
+        </section>
+      )}
 
       <section className="mx-auto max-w-6xl px-4 py-10 border-t border-white/10">
         <div className="flex items-baseline justify-between mb-6">
@@ -28,7 +38,7 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="grid sm:grid-cols-3 gap-4">
-          {mockArticles.map((article) => (
+          {articles.map((article) => (
             <div
               key={article.id}
               className="bg-surface border border-white/10 rounded-lg p-4"
@@ -59,7 +69,7 @@ export default function HomePage() {
               </tr>
             </thead>
             <tbody>
-              {mockStandings.slice(0, 5).map((row) => (
+              {standings.map((row) => (
                 <tr key={row.rank} className="border-b border-white/5">
                   <td className="py-2 pr-2 text-muted">{row.rank}</td>
                   <td className="py-2 pr-2 font-body">{row.team}</td>
