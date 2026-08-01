@@ -15,6 +15,7 @@ type MatchRow = {
   status: string | null;
   match_date: string;
   minute: string | null;
+  venue?: string | null;
   competition: { name: string } | null;
   home_team: { name: string } | null;
   away_team: { name: string } | null;
@@ -46,6 +47,48 @@ export async function getMatches(): Promise<MatchCardData[]> {
 
   if (error || !data) return [];
   return (data as unknown as MatchRow[]).map(toMatchCard);
+}
+
+export interface MatchDetail {
+  id: string;
+  competition: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeScore: number;
+  awayScore: number;
+  status: MatchStatus;
+  minute?: string;
+  matchDate: string;
+  venue?: string;
+}
+
+export async function getMatchById(id: string): Promise<MatchDetail | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("matches")
+    .select(
+      "id, home_score, away_score, status, match_date, minute, venue, competition:competitions(name), home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)"
+    )
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return null;
+
+  const row = data as unknown as MatchRow;
+  const status = (row.status ?? "scheduled") as MatchStatus;
+
+  return {
+    id: row.id,
+    competition: row.competition?.name ?? "",
+    homeTeam: row.home_team?.name ?? "",
+    awayTeam: row.away_team?.name ?? "",
+    homeScore: row.home_score ?? 0,
+    awayScore: row.away_score ?? 0,
+    status,
+    minute: row.minute ?? undefined,
+    matchDate: row.match_date,
+    venue: row.venue ?? undefined,
+  };
 }
 
 export interface StandingRow {
@@ -115,4 +158,31 @@ export async function getArticles(): Promise<ArticleRow[]> {
     author: row.author ?? "Rédaction",
     publishedAt: row.published_at?.slice(0, 10) ?? "",
   }));
+}
+
+export interface ArticleDetail {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+  publishedAt: string;
+}
+
+export async function getArticleBySlug(slug: string): Promise<ArticleDetail | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("articles")
+    .select("id, title, content, author, published_at")
+    .eq("slug", slug)
+    .single();
+
+  if (error || !data) return null;
+
+  return {
+    id: data.id,
+    title: data.title,
+    content: data.content ?? "",
+    author: data.author ?? "Rédaction",
+    publishedAt: data.published_at?.slice(0, 10) ?? "",
+  };
 }
