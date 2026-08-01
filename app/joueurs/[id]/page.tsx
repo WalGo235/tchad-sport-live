@@ -16,9 +16,18 @@ export default async function PlayerDetailPage({
 
   return (
     <section className="mx-auto max-w-md px-4 py-16 text-center">
-      <div className="w-24 h-24 rounded-full bg-surface border border-white/10 mx-auto mb-6 flex items-center justify-center font-display text-3xl text-gold">
-        {player.jerseyNumber ?? "—"}
-      </div>
+      {player.photoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={player.photoUrl}
+          alt={player.name}
+          className="w-24 h-24 rounded-full object-cover mx-auto mb-6 border border-white/10"
+        />
+      ) : (
+        <div className="w-24 h-24 rounded-full bg-surface border border-white/10 mx-auto mb-6 flex items-center justify-center font-display text-3xl text-gold">
+          {player.jerseyNumber ?? "—"}
+        </div>
+      )}
       <h1 className="font-display text-3xl tracking-wide mb-2">{player.name}</h1>
       <p className="text-muted mb-6">{player.position ?? "Poste non renseigné"}</p>
       {player.team && (
