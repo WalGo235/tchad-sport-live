@@ -30,12 +30,15 @@ export default async function AdminClubsPage() {
           placeholder="Ville"
           className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted"
         />
-        <input
-          type="text"
-          name="logoUrl"
-          placeholder="URL du logo (optionnel)"
-          className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted"
-        />
+        <div>
+          <label className="text-xs text-muted block mb-1">Logo (optionnel)</label>
+          <input
+            type="file"
+            name="logoFile"
+            accept="image/*"
+            className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand text-sm file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-gold file:text-night file:font-semibold"
+          />
+        </div>
         <button
           type="submit"
           className="w-full bg-gold text-night font-semibold rounded-lg px-4 py-2 hover:opacity-90 transition-opacity"
@@ -48,8 +51,14 @@ export default async function AdminClubsPage() {
       <div className="space-y-4">
         {clubs?.map((club) => (
           <details key={club.id} className="bg-surface border border-white/10 rounded-lg p-4">
-            <summary className="cursor-pointer font-semibold flex items-center justify-between">
-              <span>{club.name}</span>
+            <summary className="cursor-pointer font-semibold flex items-center justify-between gap-3">
+              <span className="flex items-center gap-3">
+                {club.logo_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={club.logo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                )}
+                {club.name}
+              </span>
               <span className="text-xs text-muted font-normal">{club.city}</span>
             </summary>
             <form action={upsertClub.bind(null, club.id)} className="space-y-3 mt-4">
@@ -66,12 +75,17 @@ export default async function AdminClubsPage() {
                 defaultValue={club.city ?? ""}
                 className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
               />
-              <input
-                type="text"
-                name="logoUrl"
-                defaultValue={club.logo_url ?? ""}
-                className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
-              />
+              <div>
+                <label className="text-xs text-muted block mb-1">
+                  Nouveau logo (laisse vide pour garder l&apos;actuel)
+                </label>
+                <input
+                  type="file"
+                  name="logoFile"
+                  accept="image/*"
+                  className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand text-sm file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-gold file:text-night file:font-semibold"
+                />
+              </div>
               <button
                 type="submit"
                 className="w-full bg-gold text-night font-semibold rounded-lg px-4 py-2 hover:opacity-90 transition-opacity"
