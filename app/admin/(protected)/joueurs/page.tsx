@@ -53,12 +53,15 @@ export default async function AdminJoueursPage() {
             className="w-24 bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted"
           />
         </div>
-        <input
-          type="text"
-          name="photoUrl"
-          placeholder="URL photo (optionnel)"
-          className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted"
-        />
+        <div>
+          <label className="text-xs text-muted block mb-1">Photo (optionnel)</label>
+          <input
+            type="file"
+            name="photoFile"
+            accept="image/*"
+            className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand text-sm file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-gold file:text-night file:font-semibold"
+          />
+        </div>
         <button
           type="submit"
           className="w-full bg-gold text-night font-semibold rounded-lg px-4 py-2 hover:opacity-90 transition-opacity"
@@ -71,8 +74,12 @@ export default async function AdminJoueursPage() {
       <div className="space-y-4">
         {players?.map((player) => (
           <details key={player.id} className="bg-surface border border-white/10 rounded-lg p-4">
-            <summary className="cursor-pointer font-semibold flex items-center justify-between">
-              <span>
+            <summary className="cursor-pointer font-semibold flex items-center justify-between gap-3">
+              <span className="flex items-center gap-3">
+                {player.photo_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={player.photo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                )}
                 {player.jersey_number ? `#${player.jersey_number} ` : ""}
                 {player.name}
               </span>
@@ -120,12 +127,17 @@ export default async function AdminJoueursPage() {
                   className="w-24 bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
                 />
               </div>
-              <input
-                type="text"
-                name="photoUrl"
-                defaultValue={player.photo_url ?? ""}
-                className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
-              />
+              <div>
+                <label className="text-xs text-muted block mb-1">
+                  Nouvelle photo (laisse vide pour garder l&apos;actuelle)
+                </label>
+                <input
+                  type="file"
+                  name="photoFile"
+                  accept="image/*"
+                  className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand text-sm file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-gold file:text-night file:font-semibold"
+                />
+              </div>
               <button
                 type="submit"
                 className="w-full bg-gold text-night font-semibold rounded-lg px-4 py-2 hover:opacity-90 transition-opacity"
