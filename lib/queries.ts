@@ -186,3 +186,81 @@ export async function getArticleBySlug(slug: string): Promise<ArticleDetail | nu
     publishedAt: data.published_at?.slice(0, 10) ?? "",
   };
 }
+
+export interface CompetitionListItem {
+  id: string;
+  name: string;
+  season: string | null;
+}
+
+export async function getCompetitions(): Promise<CompetitionListItem[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("competitions")
+    .select("id, name, season")
+    .order("name");
+
+  if (error || !data) return [];
+  return data;
+}
+
+export interface CompetitionDetail {
+  id: string;
+  name: string;
+  season: string | null;
+  standings: StandingRow[];
+  clubs: { id: string; name: string; city: string | null }[];
+}
+
+export async function getCompetitionDetail(id: string): Promise<CompetitionDetail | null> {
+  const supabase = await createClient();
+
+  const { data: competition, error: compError } = await supabase
+    .from("competitions")
+    .select("id, name, season")
+    .eq("id", id)
+    .single();
+
+  if (compError || !competition) return null;
+
+  const { data: standingsData } = await supabase
+    .from("standings")
+    .select("played, wins, draws, losses, points, team:teams(id, name, city)")
+    .eq("competition_id", id)
+    .order("points", { ascending: false });
+
+  const rows = (standingsData ?? []) as unknown as Array<{
+    played: number | null;
+    wins: number | null;
+    draws: number | null;
+    losses: number | null;
+    points: number | null;
+    team: { id: string; name: string; city: string | null } | null;
+  }>;
+
+  const standings: StandingRow[] = rows.map((row, index) => ({
+    rank: index + 1,
+    team: row.team?.name ?? "",
+    played: row.played ?? 0,
+    wins: row.wins ?? 0,
+    draws: row.draws ?? 0,
+    losses: row.losses ?? 0,
+    points: row.points ?? 0,
+  }));
+
+  const clubs = rows
+    .filter((row) => row.team)
+    .map((row) => ({
+      id: row.team!.id,
+      name: row.team!.name,
+      city: row.team!.city,
+    }));
+
+  return {
+    id: competition.id,
+    name: competition.name,
+    season: competition.season,
+    standings,
+    clubs,
+  };
+}
