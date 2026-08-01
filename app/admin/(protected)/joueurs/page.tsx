@@ -1,15 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { deletePlayer, upsertPlayer } from "./actions";
-
-const POSITIONS = ["Gardien", "Défenseur", "Milieu", "Attaquant"];
+import PlayerForm from "./PlayerForm";
 
 export default async function AdminJoueursPage() {
   const supabase = await createClient();
   const [{ data: players }, { data: teams }] = await Promise.all([
-    supabase
-      .from("players")
-      .select("id, name, position, jersey_number, photo_url, team_id, teams(name)")
-      .order("name"),
+    supabase.from("players").select("*, teams(name)").order("name"),
     supabase.from("teams").select("id, name").order("name"),
   ]);
 
@@ -17,58 +13,10 @@ export default async function AdminJoueursPage() {
     <section className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="font-display text-4xl tracking-wide mb-6">JOUEURS</h1>
 
-      <form
-        action={upsertPlayer.bind(null, null)}
-        className="bg-surface border border-white/10 rounded-lg p-4 space-y-3 mb-10"
-      >
-        <h2 className="font-semibold mb-2">Nouveau joueur</h2>
-        <input
-          type="text"
-          name="name"
-          required
-          placeholder="Nom du joueur"
-          className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted"
-        />
-        <select name="teamId" className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand">
-          <option value="">— Club —</option>
-          {teams?.map((team) => (
-            <option key={team.id} value={team.id}>
-              {team.name}
-            </option>
-          ))}
-        </select>
-        <div className="flex gap-3">
-          <select name="position" className="flex-1 bg-night border border-white/10 rounded-lg px-3 py-2 text-sand">
-            <option value="">— Poste —</option>
-            {POSITIONS.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-          <input
-            type="number"
-            name="jerseyNumber"
-            placeholder="N°"
-            className="w-24 bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted"
-          />
-        </div>
-        <div>
-          <label className="text-xs text-muted block mb-1">Photo (optionnel)</label>
-          <input
-            type="file"
-            name="photoFile"
-            accept="image/*"
-            className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand text-sm file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-gold file:text-night file:font-semibold"
-          />
-        </div>
-        <button
-          type="submit"
-          className="w-full bg-gold text-night font-semibold rounded-lg px-4 py-2 hover:opacity-90 transition-opacity"
-        >
-          Ajouter
-        </button>
-      </form>
+      <div className="bg-surface border border-white/10 rounded-lg p-4 mb-10">
+        <h2 className="font-semibold mb-4">Nouveau joueur</h2>
+        <PlayerForm action={upsertPlayer.bind(null, null)} teams={teams ?? []} submitLabel="Ajouter" />
+      </div>
 
       <h2 className="font-semibold mb-4">Joueurs existants</h2>
       <div className="space-y-4">
@@ -87,65 +35,54 @@ export default async function AdminJoueursPage() {
                 {(player.teams as unknown as { name: string } | null)?.name ?? ""}
               </span>
             </summary>
-            <form action={upsertPlayer.bind(null, player.id)} className="space-y-3 mt-4">
-              <input
-                type="text"
-                name="name"
-                required
-                defaultValue={player.name}
-                className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
+            <div className="mt-4">
+              <PlayerForm
+                action={upsertPlayer.bind(null, player.id)}
+                teams={teams ?? []}
+                submitLabel="Enregistrer"
+                defaultValues={{
+                  name: player.name,
+                  teamId: player.team_id,
+                  position: player.position,
+                  jerseyNumber: player.jersey_number,
+                  dateOfBirth: player.date_of_birth,
+                  birthPlace: player.birth_place,
+                  nationality: player.nationality,
+                  heightCm: player.height_cm,
+                  weightKg: player.weight_kg,
+                  otherPositions: player.other_positions,
+                  preferredFoot: player.preferred_foot,
+                  address: player.address,
+                  phone: player.phone,
+                  email: player.email,
+                  socialLinks: player.social_links,
+                  joinedYear: player.joined_year,
+                  previousClubs: player.previous_clubs,
+                  level: player.level,
+                  majorCompetitions: player.major_competitions,
+                  nationalSelections: player.national_selections,
+                  matchesPlayed: player.matches_played,
+                  goals: player.goals,
+                  assists: player.assists,
+                  yellowCards: player.yellow_cards,
+                  redCards: player.red_cards,
+                  minutesPlayed: player.minutes_played,
+                  ratingSpeed: player.rating_speed,
+                  ratingStamina: player.rating_stamina,
+                  ratingTechnique: player.rating_technique,
+                  ratingVision: player.rating_vision,
+                  ratingShooting: player.rating_shooting,
+                  ratingDefense: player.rating_defense,
+                  ratingDribbling: player.rating_dribbling,
+                  ratingAerial: player.rating_aerial,
+                  dream: player.dream,
+                  inspiration: player.inspiration,
+                  seasonGoal: player.season_goal,
+                  highlightVideoUrl: player.highlight_video_url,
+                }}
               />
-              <select
-                name="teamId"
-                defaultValue={player.team_id ?? ""}
-                className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
-              >
-                <option value="">— Club —</option>
-                {teams?.map((team) => (
-                  <option key={team.id} value={team.id}>
-                    {team.name}
-                  </option>
-                ))}
-              </select>
-              <div className="flex gap-3">
-                <select
-                  name="position"
-                  defaultValue={player.position ?? ""}
-                  className="flex-1 bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
-                >
-                  <option value="">— Poste —</option>
-                  {POSITIONS.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  name="jerseyNumber"
-                  defaultValue={player.jersey_number ?? ""}
-                  className="w-24 bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-muted block mb-1">
-                  Nouvelle photo (laisse vide pour garder l&apos;actuelle)
-                </label>
-                <input
-                  type="file"
-                  name="photoFile"
-                  accept="image/*"
-                  className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand text-sm file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-gold file:text-night file:font-semibold"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-gold text-night font-semibold rounded-lg px-4 py-2 hover:opacity-90 transition-opacity"
-              >
-                Enregistrer
-              </button>
-            </form>
-            <form action={deletePlayer.bind(null, player.id)} className="mt-2">
+            </div>
+            <form action={deletePlayer.bind(null, player.id)} className="mt-3">
               <button type="submit" className="text-live text-sm hover:underline">
                 Supprimer
               </button>
