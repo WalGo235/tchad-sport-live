@@ -1,1 +1,24 @@
+import { notFound } from "next/navigation";
+import { getArticleBySlug } from "@/lib/queries";
 
+export const revalidate = 300;
+
+export default async function ArticleDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const article = await getArticleBySlug(slug);
+
+  if (!article) notFound();
+
+  return (
+    <article className="mx-auto max-w-2xl px-4 py-16">
+      <p className="text-sm text-muted mb-2">{article.publishedAt}</p>
+      <h1 className="font-display text-3xl sm:text-4xl tracking-wide mb-6">{article.title}</h1>
+      <div className="text-muted leading-relaxed whitespace-pre-line">{article.content}</div>
+      <p className="text-sm text-muted mt-8">Par {article.author}</p>
+    </article>
+  );
+}
