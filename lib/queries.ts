@@ -264,3 +264,72 @@ export async function getCompetitionDetail(id: string): Promise<CompetitionDetai
     clubs,
   };
 }
+
+export interface ClubDetail {
+  id: string;
+  name: string;
+  city: string | null;
+  logoUrl: string | null;
+  players: { id: string; name: string; position: string | null; jerseyNumber: number | null }[];
+}
+
+export async function getClubDetail(id: string): Promise<ClubDetail | null> {
+  const supabase = await createClient();
+
+  const { data: club, error } = await supabase
+    .from("teams")
+    .select("id, name, city, logo_url")
+    .eq("id", id)
+    .single();
+
+  if (error || !club) return null;
+
+  const { data: players } = await supabase
+    .from("players")
+    .select("id, name, position, jersey_number")
+    .eq("team_id", id)
+    .order("jersey_number", { ascending: true, nullsFirst: false });
+
+  return {
+    id: club.id,
+    name: club.name,
+    city: club.city,
+    logoUrl: club.logo_url,
+    players: (players ?? []).map((p) => ({
+      id: p.id,
+      name: p.name,
+      position: p.position,
+      jerseyNumber: p.jersey_number,
+    })),
+  };
+}
+
+export interface PlayerDetail {
+  id: string;
+  name: string;
+  position: string | null;
+  jerseyNumber: number | null;
+  photoUrl: string | null;
+  team: { id: string; name: string } | null;
+}
+
+export async function getPlayerDetail(id: string): Promise<PlayerDetail | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("players")
+    .select("id, name, position, jersey_number, photo_url, team:teams(id, name)")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return null;
+
+  return {
+    id: data.id,
+    name: data.name,
+    position: data.position,
+    jerseyNumber: data.jersey_number,
+    photoUrl: data.photo_url,
+    team: (data.team as unknown as { id: string; name: string } | null) ?? null,
+  };
+}
