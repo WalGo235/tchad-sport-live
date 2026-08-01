@@ -53,8 +53,8 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-10 border-t border-white/10">
         <div className="flex items-baseline justify-between mb-6">
           <h2 className="font-display text-2xl tracking-wide">CLASSEMENT</h2>
-          <Link href="/classements" className="text-sm text-gold hover:underline">
-            Classement complet →
+          <Link href="/competitions" className="text-sm text-gold hover:underline">
+            Voir les compétitions →
           </Link>
         </div>
         <div className="overflow-x-auto">
