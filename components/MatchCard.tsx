@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export type MatchStatus = "scheduled" | "live" | "finished" | "postponed";
 
 export interface MatchCardData {
@@ -23,7 +25,10 @@ export default function MatchCard({ match }: { match: MatchCardData }) {
   const isLive = match.status === "live";
 
   return (
-    <div className="bg-surface border border-white/10 rounded-lg p-4 min-w-[220px] flex-shrink-0">
+    <Link
+      href={`/matchs/${match.id}`}
+      className="block bg-surface border border-white/10 rounded-lg p-4 min-w-[220px] flex-shrink-0 hover:border-gold/50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
+    >
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs uppercase tracking-wider text-muted">
           {match.competition}
@@ -54,6 +59,6 @@ export default function MatchCard({ match }: { match: MatchCardData }) {
       {match.status === "scheduled" && match.kickoff && (
         <p className="text-xs text-muted mt-3">Coup d&apos;envoi {match.kickoff}</p>
       )}
-    </div>
+    </Link>
   );
 }
