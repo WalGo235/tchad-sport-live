@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCompetitionDetail } from "@/lib/queries";
 
@@ -39,6 +40,7 @@ export default async function CompetitionDetailPage({
                 <td className="py-2 pr-2 font-body">{row.team}</td>
                 <td className="py-2 px-2 text-center">{row.played}</td>
                 <td className="py-2 px-2 text-center">{row.wins}</td>
+                <td className="py-2 px-2 text-center">{row.draws}</td>
                 <td className="py-2 px-2 text-center">{row.losses}</td>
                 <td className="py-2 px-2 text-center text-gold font-bold">{row.points}</td>
               </tr>
@@ -50,10 +52,14 @@ export default async function CompetitionDetailPage({
       <h2 className="font-display text-2xl tracking-wide mb-4">CLUBS</h2>
       <div className="grid sm:grid-cols-2 gap-4">
         {competition.clubs.map((club) => (
-          <div key={club.id} className="bg-surface border border-white/10 rounded-lg p-4">
+          <Link
+            key={club.id}
+            href={`/clubs/${club.id}`}
+            className="bg-surface border border-white/10 rounded-lg p-4 hover:border-gold/50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
+          >
             <p className="font-semibold">{club.name}</p>
             {club.city && <p className="text-sm text-muted">{club.city}</p>}
-          </div>
+          </Link>
         ))}
       </div>
     </section>
