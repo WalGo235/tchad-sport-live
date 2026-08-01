@@ -16,7 +16,17 @@ export default async function ClubDetailPage({
 
   return (
     <section className="mx-auto max-w-2xl px-4 py-16">
-      <h1 className="font-display text-4xl tracking-wide mb-2">{club.name}</h1>
+      <div className="flex items-center gap-4 mb-2">
+        {club.logoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={club.logoUrl}
+            alt={club.name}
+            className="w-16 h-16 rounded-full object-cover border border-white/10"
+          />
+        )}
+        <h1 className="font-display text-4xl tracking-wide">{club.name}</h1>
+      </div>
       {club.city && <p className="text-muted mb-8">{club.city}</p>}
 
       <h2 className="font-display text-2xl tracking-wide mb-4">EFFECTIF</h2>
