@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Nous contacter — TchadSportLive",
+  description: "Contactez l'équipe de TchadSportLive.",
+};
+
 export default function ContactPage() {
   return (
     <section className="mx-auto max-w-2xl px-4 py-16">
