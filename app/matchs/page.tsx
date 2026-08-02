@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import MatchGridSection from "@/components/MatchGridSection";
 import { getMatches } from "@/lib/queries";
+
+export const metadata: Metadata = {
+  title: "Matchs — TchadSportLive",
+  description: "Tous les matchs de football tchadien : résultats, calendrier et scores en direct.",
+};
 
 export const revalidate = 60;
 
