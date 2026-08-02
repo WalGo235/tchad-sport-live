@@ -1,8 +1,27 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPlayerDetail } from "@/lib/queries";
 
 export const revalidate = 300;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const player = await getPlayerDetail(id);
+
+  if (!player) return { title: "Joueur — TchadSportLive" };
+
+  return {
+    title: `${player.name} — TchadSportLive`,
+    description: `Profil de ${player.name}${player.position ? `, ${player.position}` : ""}${
+      player.team ? ` à ${player.team.name}` : ""
+    } sur TchadSportLive.`,
+  };
+}
 
 export default async function PlayerDetailPage({
   params,
