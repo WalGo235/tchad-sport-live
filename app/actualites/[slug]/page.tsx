@@ -1,7 +1,24 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getArticleBySlug } from "@/lib/queries";
 
 export const revalidate = 300;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const article = await getArticleBySlug(slug);
+
+  if (!article) return { title: "Article — TchadSportLive" };
+
+  return {
+    title: `${article.title} — TchadSportLive`,
+    description: article.content.slice(0, 160),
+  };
+}
 
 export default async function ArticleDetailPage({
   params,
