@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getCompetitions } from "@/lib/queries";
+
+export const metadata: Metadata = {
+  title: "Compétitions — TchadSportLive",
+  description: "Ligue 1 Tchadienne, Coupe du Tchad et toutes les compétitions de football au Tchad.",
+};
 
 export const revalidate = 300;
 
