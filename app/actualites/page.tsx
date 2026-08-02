@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getArticles } from "@/lib/queries";
+
+export const metadata: Metadata = {
+  title: "Actualités — TchadSportLive",
+  description: "Les dernières actualités du football tchadien.",
+};
 
 export const revalidate = 300;
 
