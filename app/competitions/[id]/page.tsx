@@ -1,8 +1,27 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCompetitionDetail } from "@/lib/queries";
 
 export const revalidate = 60;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const competition = await getCompetitionDetail(id);
+
+  if (!competition) return { title: "Compétition — TchadSportLive" };
+
+  return {
+    title: `${competition.name} — TchadSportLive`,
+    description: `Classement et clubs de ${competition.name}${
+      competition.season ? ` (saison ${competition.season})` : ""
+    } sur TchadSportLive.`,
+  };
+}
 
 export default async function CompetitionDetailPage({
   params,
