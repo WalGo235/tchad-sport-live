@@ -1,6 +1,5 @@
 import Link from "next/link";
-import LiveTicker from "@/components/LiveTicker";
-import MatchCard from "@/components/MatchCard";
+import HomeLiveSection from "@/components/HomeLiveSection";
 import { getArticles, getMatches, getStandings } from "@/lib/queries";
 
 export const revalidate = 60;
@@ -12,21 +11,9 @@ export default async function HomePage() {
     getStandings(5),
   ]);
 
-  const featured = matches[0];
-
   return (
     <>
-      <LiveTicker matches={matches} />
-
-      {featured && (
-        <section className="mx-auto max-w-6xl px-4 py-10">
-          <h1 className="font-display text-4xl sm:text-5xl tracking-wide mb-2">MATCH À LA UNE</h1>
-          <p className="text-muted mb-6">Le direct à ne pas manquer</p>
-          <div className="max-w-sm">
-            <MatchCard match={featured} />
-          </div>
-        </section>
-      )}
+      <HomeLiveSection initialMatches={matches} />
 
       <section className="mx-auto max-w-6xl px-4 py-10 border-t border-white/10">
         <div className="flex items-baseline justify-between mb-6">
