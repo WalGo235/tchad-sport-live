@@ -1,8 +1,25 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getMatchById } from "@/lib/queries";
 import MatchDetailLive from "@/components/MatchDetailLive";
 
 export const revalidate = 60;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const match = await getMatchById(id);
+
+  if (!match) return { title: "Match — TchadSportLive" };
+
+  return {
+    title: `${match.homeTeam} ${match.homeScore}-${match.awayScore} ${match.awayTeam} — TchadSportLive`,
+    description: `${match.competition} : suivez ${match.homeTeam} contre ${match.awayTeam} en direct sur TchadSportLive.`,
+  };
+}
 
 export default async function MatchDetailPage({
   params,
