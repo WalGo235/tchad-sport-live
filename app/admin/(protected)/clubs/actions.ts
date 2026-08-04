@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { logActivity } from "@/lib/logActivity";
 
 async function uploadFile(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -35,8 +36,9 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
   const newTeamPhotoUrl = await uploadFile(supabase, formData.get("teamPhotoFile") as File | null, "equipes");
   const newRegistrationUrl = await uploadFile(supabase, formData.get("registrationFile") as File | null, "documents");
 
+  const name = formData.get("name") as string;
   const payload: Record<string, unknown> = {
-    name: formData.get("name") as string,
+    name,
     abbreviation: textOrNull(formData, "abbreviation"),
     founded_date: textOrNull(formData, "foundedDate"),
     city: textOrNull(formData, "city"),
@@ -77,11 +79,21 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
   if (newTeamPhotoUrl) payload.team_photo_url = newTeamPhotoUrl;
   if (newRegistrationUrl) payload.registration_doc_url = newRegistrationUrl;
 
+  let finalId = clubId;
+
   if (clubId) {
     await supabase.from("teams").update(payload).eq("id", clubId);
   } else {
-    await supabase.from("teams").insert(payload);
+    const { data } = await supabase.from("teams").insert(payload).select("id").single();
+    finalId = data?.id ?? null;
   }
+
+  await logActivity({
+    action: clubId ? "Modification de club" : "Ajout de club",
+    entityType: "club",
+    entityId: finalId ?? undefined,
+    details: { name },
+  });
 
   revalidatePath("/admin/clubs");
   revalidatePath("/competitions");
@@ -89,6 +101,17 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
 
 export async function deleteClub(clubId: string) {
   const supabase = await createClient();
+
+  const { data: club } = await supabase.from("teams").select("name").eq("id", clubId).single();
+
   await supabase.from("teams").delete().eq("id", clubId);
+
+  await logActivity({
+    action: "Suppression de club",
+    entityType: "club",
+    entityId: clubId,
+    details: { name: club?.name },
+  });
+
   revalidatePath("/admin/clubs");
 }
