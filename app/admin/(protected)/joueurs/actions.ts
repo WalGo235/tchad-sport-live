@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { logActivity } from "@/lib/logActivity";
 
 async function uploadFile(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -33,8 +34,9 @@ export async function upsertPlayer(playerId: string | null, formData: FormData) 
   const newPhotoUrl = await uploadFile(supabase, formData.get("photoFile") as File | null, "joueurs");
   const newLicenseUrl = await uploadFile(supabase, formData.get("licenseFile") as File | null, "licences");
 
+  const name = formData.get("name") as string;
   const payload: Record<string, unknown> = {
-    name: formData.get("name") as string,
+    name,
     team_id: textOrNull(formData, "teamId"),
     position: textOrNull(formData, "position"),
     jersey_number: numberOrNull(formData, "jerseyNumber"),
@@ -77,17 +79,38 @@ export async function upsertPlayer(playerId: string | null, formData: FormData) 
   if (newPhotoUrl) payload.photo_url = newPhotoUrl;
   if (newLicenseUrl) payload.license_doc_url = newLicenseUrl;
 
+  let finalId = playerId;
+
   if (playerId) {
     await supabase.from("players").update(payload).eq("id", playerId);
   } else {
-    await supabase.from("players").insert(payload);
+    const { data } = await supabase.from("players").insert(payload).select("id").single();
+    finalId = data?.id ?? null;
   }
+
+  await logActivity({
+    action: playerId ? "Modification de joueur" : "Ajout de joueur",
+    entityType: "player",
+    entityId: finalId ?? undefined,
+    details: { name },
+  });
 
   revalidatePath("/admin/joueurs");
 }
 
 export async function deletePlayer(playerId: string) {
   const supabase = await createClient();
+
+  const { data: player } = await supabase.from("players").select("name").eq("id", playerId).single();
+
   await supabase.from("players").delete().eq("id", playerId);
+
+  await logActivity({
+    action: "Suppression de joueur",
+    entityType: "player",
+    entityId: playerId,
+    details: { name: player?.name },
+  });
+
   revalidatePath("/admin/joueurs");
 }
