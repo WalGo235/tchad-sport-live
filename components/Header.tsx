@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 
+const LOGO_URL =
+  "https://iqsrxyuazktyiyhpbzie.supabase.co/storage/v1/object/public/photos/1786046878776.png";
+
 const NAV_LINKS = [
   { href: "/", label: "Accueil" },
   { href: "/matchs", label: "Matchs" },
@@ -38,10 +41,14 @@ export default function Header() {
   return (
     <header className="border-b border-white/10 sticky top-0 z-40 bg-night/95 backdrop-blur">
       <div className="mx-auto max-w-6xl px-4 h-16 flex items-center justify-between gap-4">
-        <Link href="/" className="font-display text-2xl tracking-wide shrink-0" onClick={closeAll}>
-          <span className="text-sand">TCHAD</span>
-          <span className="text-gold">SPORT</span>
-          <span className="text-live">LIVE</span>
+        <Link href="/" className="flex items-center gap-2 shrink-0" onClick={closeAll}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={LOGO_URL} alt="TchadSportLive" className="h-10 w-10 rounded-full object-cover" />
+          <span className="font-display text-2xl tracking-wide hidden sm:inline">
+            <span className="text-sand">TCHAD</span>
+            <span className="text-gold">SPORT</span>
+            <span className="text-live">LIVE</span>
+          </span>
         </Link>
 
         <nav className="hidden lg:flex gap-5 text-sm font-medium text-muted items-center">
@@ -95,9 +102,13 @@ export default function Header() {
       {open && (
         <nav className="lg:hidden border-t border-white/10 px-4 py-3 flex flex-col gap-1 max-h-[80vh] overflow-y-auto">
           <div className="flex items-center justify-between py-2 mb-2 border-b border-white/10">
-            <div>
-              <p className="font-display text-lg tracking-wide">TCHADSPORTLIVE</p>
-              <p className="text-xs text-muted">Le football tchadien en direct</p>
+            <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={LOGO_URL} alt="TchadSportLive" className="h-12 w-12 rounded-full object-cover" />
+              <div>
+                <p className="font-display text-lg tracking-wide">TCHADSPORTLIVE</p>
+                <p className="text-xs text-muted">Le sport tchadien en direct</p>
+              </div>
             </div>
             <Link href="/admin" onClick={closeAll} className="text-gold text-sm whitespace-nowrap">
               Mon compte
