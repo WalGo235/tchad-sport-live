@@ -20,8 +20,7 @@ async function uploadFile(
     return null;
   }
 
-  const { data } = await supabase.storage.from("photos").getPublicUrl(fileName);
-  return data?.publicUrl ?? null;
+  return `https://iqsrxyuazktyiyhpbzie.supabase.co/storage/v1/object/public/photos/${fileName}`;
 }
 
 function textOrNull(formData: FormData, key: string) {
