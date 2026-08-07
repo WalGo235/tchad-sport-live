@@ -10,22 +10,17 @@ async function uploadFile(
   folder: string
 ) {
   if (!file || file.size === 0) return null;
-  const fileExt = file.name.split(".").pop();
+
+  const fileExt = file.name.split(".").pop() || "jpg";
   const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-  const { error } = await supabase.storage.from("photos").upload(fileName, file);
-  if (error) return null;
-  const { data } = supabase.storage.from("photos").getPublicUrl(fileName);
-  return data.publicUrl;
-}
 
-function textOrNull(formData: FormData, key: string) {
-  const value = formData.get(key) as string;
-  return value ? value : null;
-}
+  const { error: uploadError } = await supabase.storage.from("photos").upload(fileName, file);
+  if (uploadError) {
+    console.error("Erreur upload storage:", uploadError.message);
+    return null;
+  }
 
-function numberOrNull(formData: FormData, key: string) {
-  const value = formData.get(key) as string;
-  return value ? Number(value) : null;
+  return `https://iqsrxyuazktyiyhpbzie.supabase.co/storage/v1/object/public/photos/${fileName}`;
 }
 
 export async function upsertPlayer(playerId: string | null, formData: FormData) {
@@ -37,43 +32,43 @@ export async function upsertPlayer(playerId: string | null, formData: FormData) 
   const name = formData.get("name") as string;
   const payload: Record<string, unknown> = {
     name,
-    team_id: textOrNull(formData, "teamId"),
-    position: textOrNull(formData, "position"),
-    jersey_number: numberOrNull(formData, "jerseyNumber"),
-    date_of_birth: textOrNull(formData, "dateOfBirth"),
-    birth_place: textOrNull(formData, "birthPlace"),
-    nationality: textOrNull(formData, "nationality"),
-    height_cm: numberOrNull(formData, "heightCm"),
-    weight_kg: numberOrNull(formData, "weightKg"),
-    other_positions: textOrNull(formData, "otherPositions"),
-    preferred_foot: textOrNull(formData, "preferredFoot"),
-    address: textOrNull(formData, "address"),
-    phone: textOrNull(formData, "phone"),
-    email: textOrNull(formData, "email"),
-    social_links: textOrNull(formData, "socialLinks"),
-    joined_year: numberOrNull(formData, "joinedYear"),
-    previous_clubs: textOrNull(formData, "previousClubs"),
-    level: textOrNull(formData, "level"),
-    major_competitions: textOrNull(formData, "majorCompetitions"),
-    national_selections: textOrNull(formData, "nationalSelections"),
-    matches_played: numberOrNull(formData, "matchesPlayed"),
-    goals: numberOrNull(formData, "goals"),
-    assists: numberOrNull(formData, "assists"),
-    yellow_cards: numberOrNull(formData, "yellowCards"),
-    red_cards: numberOrNull(formData, "redCards"),
-    minutes_played: numberOrNull(formData, "minutesPlayed"),
-    rating_speed: numberOrNull(formData, "ratingSpeed"),
-    rating_stamina: numberOrNull(formData, "ratingStamina"),
-    rating_technique: numberOrNull(formData, "ratingTechnique"),
-    rating_vision: numberOrNull(formData, "ratingVision"),
-    rating_shooting: numberOrNull(formData, "ratingShooting"),
-    rating_defense: numberOrNull(formData, "ratingDefense"),
-    rating_dribbling: numberOrNull(formData, "ratingDribbling"),
-    rating_aerial: numberOrNull(formData, "ratingAerial"),
-    dream: textOrNull(formData, "dream"),
-    inspiration: textOrNull(formData, "inspiration"),
-    season_goal: textOrNull(formData, "seasonGoal"),
-    highlight_video_url: textOrNull(formData, "highlightVideoUrl"),
+    team_id: (formData.get("teamId") as string) || null,
+    position: (formData.get("position") as string) || null,
+    jersey_number: formData.get("jerseyNumber") ? Number(formData.get("jerseyNumber")) : null,
+    date_of_birth: (formData.get("dateOfBirth") as string) || null,
+    birth_place: (formData.get("birthPlace") as string) || null,
+    nationality: (formData.get("nationality") as string) || null,
+    height_cm: formData.get("heightCm") ? Number(formData.get("heightCm")) : null,
+    weight_kg: formData.get("weightKg") ? Number(formData.get("weightKg")) : null,
+    other_positions: (formData.get("otherPositions") as string) || null,
+    preferred_foot: (formData.get("preferredFoot") as string) || null,
+    address: (formData.get("address") as string) || null,
+    phone: (formData.get("phone") as string) || null,
+    email: (formData.get("email") as string) || null,
+    social_links: (formData.get("socialLinks") as string) || null,
+    joined_year: formData.get("joinedYear") ? Number(formData.get("joinedYear")) : null,
+    previous_clubs: (formData.get("previousClubs") as string) || null,
+    level: (formData.get("level") as string) || null,
+    major_competitions: (formData.get("majorCompetitions") as string) || null,
+    national_selections: (formData.get("nationalSelections") as string) || null,
+    matches_played: formData.get("matchesPlayed") ? Number(formData.get("matchesPlayed")) : null,
+    goals: formData.get("goals") ? Number(formData.get("goals")) : null,
+    assists: formData.get("assists") ? Number(formData.get("assists")) : null,
+    yellow_cards: formData.get("yellowCards") ? Number(formData.get("yellowCards")) : null,
+    red_cards: formData.get("redCards") ? Number(formData.get("redCards")) : null,
+    minutes_played: formData.get("minutesPlayed") ? Number(formData.get("minutesPlayed")) : null,
+    rating_speed: formData.get("ratingSpeed") ? Number(formData.get("ratingSpeed")) : null,
+    rating_stamina: formData.get("ratingStamina") ? Number(formData.get("ratingStamina")) : null,
+    rating_technique: formData.get("ratingTechnique") ? Number(formData.get("ratingTechnique")) : null,
+    rating_vision: formData.get("ratingVision") ? Number(formData.get("ratingVision")) : null,
+    rating_shooting: formData.get("ratingShooting") ? Number(formData.get("ratingShooting")) : null,
+    rating_defense: formData.get("ratingDefense") ? Number(formData.get("ratingDefense")) : null,
+    rating_dribbling: formData.get("ratingDribbling") ? Number(formData.get("ratingDribbling")) : null,
+    rating_aerial: formData.get("ratingAerial") ? Number(formData.get("ratingAerial")) : null,
+    dream: (formData.get("dream") as string) || null,
+    inspiration: (formData.get("inspiration") as string) || null,
+    season_goal: (formData.get("seasonGoal") as string) || null,
+    highlight_video_url: (formData.get("highlightVideoUrl") as string) || null,
   };
 
   if (newPhotoUrl) payload.photo_url = newPhotoUrl;
@@ -82,9 +77,11 @@ export async function upsertPlayer(playerId: string | null, formData: FormData) 
   let finalId = playerId;
 
   if (playerId) {
-    await supabase.from("players").update(payload).eq("id", playerId);
+    const { error: updateError } = await supabase.from("players").update(payload).eq("id", playerId);
+    if (updateError) console.error("Erreur mise à jour joueur:", updateError.message);
   } else {
-    const { data } = await supabase.from("players").insert(payload).select("id").single();
+    const { data, error: insertError } = await supabase.from("players").insert(payload).select("id").single();
+    if (insertError) console.error("Erreur création joueur:", insertError.message);
     finalId = data?.id ?? null;
   }
 
@@ -100,17 +97,13 @@ export async function upsertPlayer(playerId: string | null, formData: FormData) 
 
 export async function deletePlayer(playerId: string) {
   const supabase = await createClient();
-
   const { data: player } = await supabase.from("players").select("name").eq("id", playerId).single();
-
   await supabase.from("players").delete().eq("id", playerId);
-
   await logActivity({
     action: "Suppression de joueur",
     entityType: "player",
     entityId: playerId,
     details: { name: player?.name },
   });
-
   revalidatePath("/admin/joueurs");
 }
