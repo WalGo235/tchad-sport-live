@@ -8,7 +8,7 @@ const LOGO_URL =
 
 const NAV_LINKS = [
   { href: "/", label: "Accueil" },
-  { href: "/matchs", label: "Matchs" },
+  { href: "/matchs", label: "📅 Calendrier des Matchs" },
   { href: "/competitions", label: "Compétitions" },
   { href: "/actualites", label: "Actualités" },
 ];
