@@ -10,12 +10,18 @@ async function uploadFile(
   folder: string
 ) {
   if (!file || file.size === 0) return null;
-  const fileExt = file.name.split(".").pop();
+
+  const fileExt = file.name.split(".").pop() || "jpg";
   const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-  const { error } = await supabase.storage.from("photos").upload(fileName, file);
-  if (error) return null;
-  const { data } = supabase.storage.from("photos").getPublicUrl(fileName);
-  return data.publicUrl;
+
+  const { error: uploadError } = await supabase.storage.from("photos").upload(fileName, file);
+  if (uploadError) {
+    console.error("Erreur upload storage:", uploadError.message);
+    return null;
+  }
+
+  const { data } = await supabase.storage.from("photos").getPublicUrl(fileName);
+  return data?.publicUrl ?? null;
 }
 
 function textOrNull(formData: FormData, key: string) {
@@ -82,9 +88,11 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
   let finalId = clubId;
 
   if (clubId) {
-    await supabase.from("teams").update(payload).eq("id", clubId);
+    const { error: updateError } = await supabase.from("teams").update(payload).eq("id", clubId);
+    if (updateError) console.error("Erreur mise à jour club:", updateError.message);
   } else {
-    const { data } = await supabase.from("teams").insert(payload).select("id").single();
+    const { data, error: insertError } = await supabase.from("teams").insert(payload).select("id").single();
+    if (insertError) console.error("Erreur création club:", insertError.message);
     finalId = data?.id ?? null;
   }
 
