@@ -12,6 +12,10 @@ export interface MatchCardData {
   status: MatchStatus;
   minute?: string;
   kickoff?: string;
+  matchDate?: string;
+  venue?: string;
+  homeLogoUrl?: string | null;
+  awayLogoUrl?: string | null;
 }
 
 const STATUS_LABEL: Record<MatchStatus, string> = {
