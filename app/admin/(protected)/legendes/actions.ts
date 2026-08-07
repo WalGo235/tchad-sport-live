@@ -10,12 +10,17 @@ async function uploadFile(
   folder: string
 ) {
   if (!file || file.size === 0) return null;
-  const fileExt = file.name.split(".").pop();
+
+  const fileExt = file.name.split(".").pop() || "jpg";
   const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-  const { error } = await supabase.storage.from("photos").upload(fileName, file);
-  if (error) return null;
-  const { data } = supabase.storage.from("photos").getPublicUrl(fileName);
-  return data.publicUrl;
+
+  const { error: uploadError } = await supabase.storage.from("photos").upload(fileName, file);
+  if (uploadError) {
+    console.error("Erreur upload storage:", uploadError.message);
+    return null;
+  }
+
+  return `https://iqsrxyuazktyiyhpbzie.supabase.co/storage/v1/object/public/photos/${fileName}`;
 }
 
 export async function upsertLegend(legendId: string | null, formData: FormData) {
@@ -35,9 +40,11 @@ export async function upsertLegend(legendId: string | null, formData: FormData) 
   let finalId = legendId;
 
   if (legendId) {
-    await supabase.from("legends").update(payload).eq("id", legendId);
+    const { error: updateError } = await supabase.from("legends").update(payload).eq("id", legendId);
+    if (updateError) console.error("Erreur mise à jour légende:", updateError.message);
   } else {
-    const { data } = await supabase.from("legends").insert(payload).select("id").single();
+    const { data, error: insertError } = await supabase.from("legends").insert(payload).select("id").single();
+    if (insertError) console.error("Erreur création légende:", insertError.message);
     finalId = data?.id ?? null;
   }
 
