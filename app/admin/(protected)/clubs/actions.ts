@@ -9,18 +9,21 @@ async function uploadFile(
   file: File | null,
   folder: string
 ) {
-  if (!file || file.size === 0) return null;
+  if (!file || file.size === 0) {
+    console.log("DEBUG uploadFile: pas de fichier ou taille 0");
+    return null;
+  }
 
   const fileExt = file.name.split(".").pop() || "jpg";
   const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
 
   const { error: uploadError } = await supabase.storage.from("photos").upload(fileName, file);
-  if (uploadError) {
-    console.error("Erreur upload storage:", uploadError.message);
-    return null;
-  }
+  console.log("DEBUG uploadFile: uploadError =", uploadError);
+  if (uploadError) return null;
 
-  return `https://iqsrxyuazktyiyhpbzie.supabase.co/storage/v1/object/public/photos/${fileName}`;
+  const url = `https://iqsrxyuazktyiyhpbzie.supabase.co/storage/v1/object/public/photos/${fileName}`;
+  console.log("DEBUG uploadFile: url générée =", url);
+  return url;
 }
 
 function textOrNull(formData: FormData, key: string) {
@@ -36,7 +39,12 @@ function numberOrNull(formData: FormData, key: string) {
 export async function upsertClub(clubId: string | null, formData: FormData) {
   const supabase = await createClient();
 
-  const newLogoUrl = await uploadFile(supabase, formData.get("logoFile") as File | null, "clubs");
+  const logoFile = formData.get("logoFile") as File | null;
+  console.log("DEBUG logoFile reçu:", logoFile ? `${logoFile.name}, ${logoFile.size} octets` : "absent");
+
+  const newLogoUrl = await uploadFile(supabase, logoFile, "clubs");
+  console.log("DEBUG newLogoUrl final:", newLogoUrl);
+
   const newStadiumPhotoUrl = await uploadFile(supabase, formData.get("stadiumPhotoFile") as File | null, "stades");
   const newTeamPhotoUrl = await uploadFile(supabase, formData.get("teamPhotoFile") as File | null, "equipes");
   const newRegistrationUrl = await uploadFile(supabase, formData.get("registrationFile") as File | null, "documents");
@@ -84,11 +92,13 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
   if (newTeamPhotoUrl) payload.team_photo_url = newTeamPhotoUrl;
   if (newRegistrationUrl) payload.registration_doc_url = newRegistrationUrl;
 
+  console.log("DEBUG payload.logo_url avant update:", payload.logo_url);
+
   let finalId = clubId;
 
   if (clubId) {
-    const { error: updateError } = await supabase.from("teams").update(payload).eq("id", clubId);
-    if (updateError) console.error("Erreur mise à jour club:", updateError.message);
+    const { error: updateError, status, statusText } = await supabase.from("teams").update(payload).eq("id", clubId);
+    console.log("DEBUG update result:", { updateError, status, statusText });
   } else {
     const { data, error: insertError } = await supabase.from("teams").insert(payload).select("id").single();
     if (insertError) console.error("Erreur création club:", insertError.message);
