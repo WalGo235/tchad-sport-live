@@ -17,8 +17,8 @@ type MatchRow = {
   minute: string | null;
   venue?: string | null;
   competition: { name: string } | null;
-  home_team: { name: string } | null;
-  away_team: { name: string } | null;
+  home_team: { name: string; logo_url: string | null } | null;
+  away_team: { name: string; logo_url: string | null } | null;
 };
 
 function toMatchCard(row: MatchRow): MatchCardData {
@@ -33,6 +33,10 @@ function toMatchCard(row: MatchRow): MatchCardData {
     status,
     minute: row.minute ?? undefined,
     kickoff: status === "scheduled" ? formatKickoff(row.match_date) : undefined,
+    matchDate: row.match_date,
+    venue: row.venue ?? undefined,
+    homeLogoUrl: row.home_team?.logo_url,
+    awayLogoUrl: row.away_team?.logo_url,
   };
 }
 
@@ -41,7 +45,7 @@ export async function getMatches(): Promise<MatchCardData[]> {
   const { data, error } = await supabase
     .from("matches")
     .select(
-      "id, home_score, away_score, status, match_date, minute, competition:competitions(name), home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)"
+      "id, home_score, away_score, status, match_date, minute, venue, competition:competitions(name), home_team:teams!home_team_id(name, logo_url), away_team:teams!away_team_id(name, logo_url)"
     )
     .order("match_date", { ascending: false });
 
