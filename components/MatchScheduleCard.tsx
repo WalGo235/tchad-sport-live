@@ -3,6 +3,7 @@ import type { MatchCardData, MatchStatus } from "./MatchCard";
 const STATUS_LABEL: Record<MatchStatus, string> = {
   scheduled: "À venir",
   live: "EN DIRECT",
+  halftime: "MI-TEMPS",
   finished: "Terminé",
   postponed: "Reporté",
 };
@@ -44,7 +45,7 @@ export default function MatchScheduleCard({ match }: { match: MatchCardData }) {
           }`}
         >
           {isLive && <span className="h-1.5 w-1.5 rounded-full bg-live animate-pulse" />}
-          {STATUS_LABEL[match.status]}
+          {isLive ? `${STATUS_LABEL.live} · ${match.minute ?? ""}` : STATUS_LABEL[match.status]}
         </span>
       </div>
 
