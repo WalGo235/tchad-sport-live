@@ -1,4 +1,5 @@
 import { createClient } from "./supabase/server";
+import { computeMatchClock } from "./matchClock";
 import type { MatchCardData, MatchStatus } from "@/components/MatchCard";
 
 function formatKickoff(dateString: string) {
@@ -22,7 +23,7 @@ type MatchRow = {
 };
 
 function toMatchCard(row: MatchRow): MatchCardData {
-  const status = (row.status ?? "scheduled") as MatchStatus;
+  const computed = computeMatchClock(row.status ?? "scheduled", row.match_date);
   return {
     id: row.id,
     competition: row.competition?.name ?? "",
@@ -30,9 +31,9 @@ function toMatchCard(row: MatchRow): MatchCardData {
     awayTeam: row.away_team?.name ?? "",
     homeScore: row.home_score ?? 0,
     awayScore: row.away_score ?? 0,
-    status,
-    minute: row.minute ?? undefined,
-    kickoff: status === "scheduled" ? formatKickoff(row.match_date) : undefined,
+    status: computed.status,
+    minute: computed.minute ?? row.minute ?? undefined,
+    kickoff: computed.status === "scheduled" ? formatKickoff(row.match_date) : undefined,
     matchDate: row.match_date,
     venue: row.venue ?? undefined,
     homeLogoUrl: row.home_team?.logo_url,
@@ -79,7 +80,7 @@ export async function getMatchById(id: string): Promise<MatchDetail | null> {
   if (error || !data) return null;
 
   const row = data as unknown as MatchRow;
-  const status = (row.status ?? "scheduled") as MatchStatus;
+  const computed = computeMatchClock(row.status ?? "scheduled", row.match_date);
 
   return {
     id: row.id,
@@ -88,8 +89,8 @@ export async function getMatchById(id: string): Promise<MatchDetail | null> {
     awayTeam: row.away_team?.name ?? "",
     homeScore: row.home_score ?? 0,
     awayScore: row.away_score ?? 0,
-    status,
-    minute: row.minute ?? undefined,
+    status: computed.status,
+    minute: computed.minute ?? row.minute ?? undefined,
     matchDate: row.match_date,
     venue: row.venue ?? undefined,
   };
