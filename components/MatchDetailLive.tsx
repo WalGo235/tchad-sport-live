@@ -6,6 +6,7 @@ import type { MatchStatus } from "./MatchCard";
 const STATUS_LABEL: Record<string, string> = {
   scheduled: "À venir",
   live: "En direct",
+  halftime: "Mi-temps",
   finished: "Terminé",
   postponed: "Reporté",
 };
