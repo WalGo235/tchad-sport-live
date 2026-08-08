@@ -66,6 +66,23 @@ export default async function AdminMatchsPage() {
           required
           className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
         />
+        <div>
+          <label className="text-xs text-muted block mb-1">Statut du match</label>
+          <select
+            name="status"
+            defaultValue="scheduled"
+            className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
+          >
+            <option value="scheduled">À venir</option>
+            <option value="live">En direct</option>
+            <option value="halftime">Mi-temps</option>
+            <option value="finished">Terminé</option>
+            <option value="postponed">Reporté</option>
+          </select>
+          <p className="text-xs text-muted mt-1">
+            Laisse "À venir" pour qu&apos;il passe automatiquement en direct à l&apos;heure prévue.
+          </p>
+        </div>
         <input
           type="text"
           name="venue"
@@ -119,6 +136,7 @@ export default async function AdminMatchsPage() {
                   >
                     <option value="scheduled">À venir</option>
                     <option value="live">En direct</option>
+                    <option value="halftime">Mi-temps</option>
                     <option value="finished">Terminé</option>
                     <option value="postponed">Reporté</option>
                   </select>
