@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export type MatchStatus = "scheduled" | "live" | "finished" | "postponed";
+export type MatchStatus = "scheduled" | "live" | "halftime" | "finished" | "postponed";
 
 export interface MatchCardData {
   id: string;
@@ -21,6 +21,7 @@ export interface MatchCardData {
 const STATUS_LABEL: Record<MatchStatus, string> = {
   scheduled: "À venir",
   live: "EN DIRECT",
+  halftime: "MI-TEMPS",
   finished: "Terminé",
   postponed: "Reporté",
 };
