@@ -12,6 +12,7 @@ export async function createMatch(formData: FormData) {
   const awayTeamId = formData.get("awayTeamId") as string;
   const matchDate = formData.get("matchDate") as string;
   const venue = (formData.get("venue") as string) || null;
+  const status = (formData.get("status") as string) || "scheduled";
 
   const { data, error } = await supabase
     .from("matches")
@@ -21,7 +22,7 @@ export async function createMatch(formData: FormData) {
       away_team_id: awayTeamId,
       match_date: matchDate,
       venue,
-      status: "scheduled",
+      status,
       home_score: 0,
       away_score: 0,
     })
@@ -34,7 +35,7 @@ export async function createMatch(formData: FormData) {
     action: "Ajout de match",
     entityType: "match",
     entityId: data?.id ?? undefined,
-    details: { competitionId, homeTeamId, awayTeamId, matchDate },
+    details: { competitionId, homeTeamId, awayTeamId, matchDate, status },
   });
 
   revalidatePath("/admin/matchs");
