@@ -1,13 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { deleteCompetition, deletePhase, upsertCompetition, upsertPhase } from "./actions";
 
-const CATEGORIES = [
-  { value: "terrain_de_terre", label: "Terrain de terre" },
-  { value: "mini_stade", label: "Mini-stade" },
-  { value: "scolaire", label: "Scolaire" },
-  { value: "universitaire", label: "Universitaire" },
-  { value: "quartier", label: "Quartier" },
-  { value: "municipal", label: "Municipal" },
+const CATEGORY_SUGGESTIONS = [
+  "Terrain de terre",
+  "Mini-stade",
+  "Scolaire",
+  "Universitaire",
+  "Quartier",
+  "Municipal",
 ];
 
 const FORMATS = [
@@ -52,14 +52,13 @@ export default async function AdminCompetitionsPage() {
         </label>
         <div>
           <label className="text-xs text-muted block mb-1">Catégorie (si non officielle)</label>
-          <select name="category" className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand">
-            <option value="">—</option>
-            {CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
+          <input
+            type="text"
+            name="category"
+            list="category-suggestions"
+            placeholder="Choisis une suggestion ou tape la tienne"
+            className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted"
+          />
         </div>
         <div>
           <label className="text-xs text-muted block mb-1">Format</label>
@@ -109,18 +108,14 @@ export default async function AdminCompetitionsPage() {
                 </label>
                 <div>
                   <label className="text-xs text-muted block mb-1">Catégorie (si non officielle)</label>
-                  <select
+                  <input
+                    type="text"
                     name="category"
+                    list="category-suggestions"
                     defaultValue={comp.category ?? ""}
-                    className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
-                  >
-                    <option value="">—</option>
-                    {CATEGORIES.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Choisis une suggestion ou tape la tienne"
+                    className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted"
+                  />
                 </div>
                 <div>
                   <label className="text-xs text-muted block mb-1">Format</label>
@@ -233,6 +228,12 @@ export default async function AdminCompetitionsPage() {
           );
         })}
       </div>
+
+      <datalist id="category-suggestions">
+        {CATEGORY_SUGGESTIONS.map((c) => (
+          <option key={c} value={c} />
+        ))}
+      </datalist>
     </section>
   );
 }
