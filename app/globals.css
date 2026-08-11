@@ -32,3 +32,25 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  15% {
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  45% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.8s ease-in-out infinite;
+}
