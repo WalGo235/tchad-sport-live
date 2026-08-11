@@ -4,9 +4,13 @@ const LOGO_URL =
 export default function AnimatedLogo() {
   return (
     <div className="flex justify-center py-10">
-      <div className="relative w-40 h-40 sm:w-48 sm:h-48">
+      <div className="relative w-56 h-56 sm:w-72 sm:h-72">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={LOGO_URL} alt="TchadSportLive" className="w-full h-full object-contain" />
+        <img
+          src={LOGO_URL}
+          alt="TchadSportLive"
+          className="w-full h-full object-contain mix-blend-multiply"
+        />
         <svg
           viewBox="0 0 100 100"
           className="absolute left-1/2 top-1/2 w-[22%] h-[22%] animate-heartbeat"
