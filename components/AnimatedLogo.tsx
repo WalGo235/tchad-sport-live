@@ -6,11 +6,7 @@ export default function AnimatedLogo() {
     <div className="flex justify-center py-10">
       <div className="relative w-56 h-56 sm:w-72 sm:h-72">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={LOGO_URL}
-          alt="TchadSportLive"
-          className="w-full h-full object-contain mix-blend-multiply"
-        />
+        <img src={LOGO_URL} alt="TchadSportLive" className="w-full h-full object-contain" />
         <svg
           viewBox="0 0 100 100"
           className="absolute left-1/2 top-1/2 w-[22%] h-[22%] animate-heartbeat"
