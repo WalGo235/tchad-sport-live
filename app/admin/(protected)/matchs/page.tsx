@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createMatch, deleteMatch, updateMatch } from "./actions";
 
@@ -105,6 +106,14 @@ export default async function AdminMatchsPage() {
               {(match.home_team as unknown as { name: string } | null)?.name ?? "?"} {match.home_score} - {match.away_score}{" "}
               {(match.away_team as unknown as { name: string } | null)?.name ?? "?"}
             </summary>
+
+            <Link
+              href={`/admin/matchs/${match.id}`}
+              className="block text-sm text-gold hover:underline mt-3"
+            >
+              Détails du match (stats, événements, composition) →
+            </Link>
+
             <form action={updateMatch.bind(null, match.id)} className="space-y-3 mt-4">
               <div className="flex gap-3">
                 <div className="flex-1">
