@@ -85,3 +85,49 @@ export async function deleteEvent(matchId: string, eventId: string) {
 
   revalidatePath(`/admin/matchs/${matchId}`);
 }
+
+export async function updateLineup(matchId: string, teamId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  await supabase.from("match_lineups").delete().eq("match_id", matchId).eq("team_id", teamId);
+
+  const rows: {
+    match_id: string;
+    team_id: string;
+    player_id: string;
+    is_starter: boolean;
+    position: string | null;
+  }[] = [];
+
+  for (const [key, value] of formData.entries()) {
+    if (key.startsWith("status_")) {
+      const playerId = key.replace("status_", "");
+      const status = value as string;
+      if (status === "titulaire" || status === "remplacant") {
+        const position = (formData.get(`position_${playerId}`) as string) || null;
+        rows.push({
+          match_id: matchId,
+          team_id: teamId,
+          player_id: playerId,
+          is_starter: status === "titulaire",
+          position,
+        });
+      }
+    }
+  }
+
+  if (rows.length > 0) {
+    const { error } = await supabase.from("match_lineups").insert(rows);
+    if (error) console.error("Erreur mise à jour composition:", error.message);
+  }
+
+  await logActivity({
+    action: "Mise à jour de la composition",
+    entityType: "match_lineup",
+    entityId: matchId,
+    details: { teamId, count: rows.length },
+  });
+
+  revalidatePath(`/admin/matchs/${matchId}`);
+  revalidatePath(`/matchs/${matchId}`);
+}
