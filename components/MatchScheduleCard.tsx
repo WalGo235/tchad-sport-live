@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { MatchCardData, MatchStatus } from "./MatchCard";
 
 const STATUS_LABEL: Record<MatchStatus, string> = {
@@ -30,7 +31,10 @@ export default function MatchScheduleCard({ match }: { match: MatchCardData }) {
     : null;
 
   return (
-    <div className="bg-surface border border-white/10 rounded-lg p-4">
+    <Link
+      href={`/matchs/${match.id}`}
+      className="block bg-surface border border-white/10 rounded-lg p-4 hover:border-gold/50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
+    >
       <div className="flex items-center justify-between mb-4">
         <span className="text-xs bg-night border border-gold/30 text-gold px-3 py-1 rounded-full">
           {match.competition}
@@ -77,6 +81,6 @@ export default function MatchScheduleCard({ match }: { match: MatchCardData }) {
           {match.venue && <span>{match.venue}</span>}
         </div>
       )}
-    </div>
+    </Link>
   );
 }
