@@ -17,6 +17,8 @@ type MatchRow = {
   match_date: string;
   minute: string | null;
   venue?: string | null;
+  home_team_id?: string;
+  away_team_id?: string;
   competition: { name: string } | null;
   home_team: { name: string; logo_url: string | null } | null;
   away_team: { name: string; logo_url: string | null } | null;
@@ -59,6 +61,8 @@ export interface MatchDetail {
   competition: string;
   homeTeam: string;
   awayTeam: string;
+  homeTeamId: string;
+  awayTeamId: string;
   homeScore: number;
   awayScore: number;
   status: MatchStatus;
@@ -72,7 +76,7 @@ export async function getMatchById(id: string): Promise<MatchDetail | null> {
   const { data, error } = await supabase
     .from("matches")
     .select(
-      "id, home_score, away_score, status, match_date, minute, venue, competition:competitions(name), home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)"
+      "id, home_score, away_score, status, match_date, minute, venue, home_team_id, away_team_id, competition:competitions(name), home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)"
     )
     .eq("id", id)
     .single();
@@ -87,6 +91,8 @@ export async function getMatchById(id: string): Promise<MatchDetail | null> {
     competition: row.competition?.name ?? "",
     homeTeam: row.home_team?.name ?? "",
     awayTeam: row.away_team?.name ?? "",
+    homeTeamId: row.home_team_id ?? "",
+    awayTeamId: row.away_team_id ?? "",
     homeScore: row.home_score ?? 0,
     awayScore: row.away_score ?? 0,
     status: computed.status,
