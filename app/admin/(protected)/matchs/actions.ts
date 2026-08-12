@@ -4,130 +4,86 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "@/lib/logActivity";
 
-function numberOrNull(formData: FormData, key: string) {
-  const value = formData.get(key) as string;
-  return value ? Number(value) : null;
-}
-
-export async function upsertStats(matchId: string, formData: FormData) {
+export async function createMatch(formData: FormData) {
   const supabase = await createClient();
 
-  const payload = {
-    match_id: matchId,
-    possession_home: numberOrNull(formData, "possessionHome"),
-    possession_away: numberOrNull(formData, "possessionAway"),
-    shots_home: numberOrNull(formData, "shotsHome"),
-    shots_away: numberOrNull(formData, "shotsAway"),
-    shots_on_target_home: numberOrNull(formData, "shotsOnTargetHome"),
-    shots_on_target_away: numberOrNull(formData, "shotsOnTargetAway"),
-    corners_home: numberOrNull(formData, "cornersHome"),
-    corners_away: numberOrNull(formData, "cornersAway"),
-    fouls_home: numberOrNull(formData, "foulsHome"),
-    fouls_away: numberOrNull(formData, "foulsAway"),
-    offsides_home: numberOrNull(formData, "offsidesHome"),
-    offsides_away: numberOrNull(formData, "offsidesAway"),
-    updated_at: new Date().toISOString(),
-  };
+  const competitionId = formData.get("competitionId") as string;
+  const homeTeamId = formData.get("homeTeamId") as string;
+  const awayTeamId = formData.get("awayTeamId") as string;
+  const matchDate = formData.get("matchDate") as string;
+  const venue = (formData.get("venue") as string) || null;
+  const status = (formData.get("status") as string) || "scheduled";
 
-  const { error } = await supabase.from("match_stats").upsert(payload);
-  if (error) console.error("Erreur mise à jour stats:", error.message);
+  const { data, error } = await supabase
+    .from("matches")
+    .insert({
+      competition_id: competitionId,
+      home_team_id: homeTeamId,
+      away_team_id: awayTeamId,
+      match_date: matchDate,
+      venue,
+      status,
+      home_score: 0,
+      away_score: 0,
+    })
+    .select("id")
+    .single();
+
+  if (error) console.error("Erreur création match:", error.message);
 
   await logActivity({
-    action: "Mise à jour des statistiques de match",
-    entityType: "match_stats",
-    entityId: matchId,
-    details: {},
+    action: "Ajout de match",
+    entityType: "match",
+    entityId: data?.id ?? undefined,
+    details: { competitionId, homeTeamId, awayTeamId, matchDate, status },
   });
 
-  revalidatePath(`/admin/matchs/${matchId}`);
-  revalidatePath(`/matchs/${matchId}`);
+  revalidatePath("/admin/matchs");
+  revalidatePath("/admin/saisie-rapide");
+  revalidatePath("/");
+  revalidatePath("/matchs");
 }
 
-export async function addEvent(matchId: string, formData: FormData) {
+export async function updateMatch(matchId: string, formData: FormData) {
   const supabase = await createClient();
 
-  const teamId = formData.get("teamId") as string;
-  const playerId = (formData.get("playerId") as string) || null;
-  const eventType = formData.get("eventType") as string;
+  const homeScore = Number(formData.get("homeScore"));
+  const awayScore = Number(formData.get("awayScore"));
+  const status = formData.get("status") as string;
   const minute = (formData.get("minute") as string) || null;
 
-  const { error } = await supabase.from("match_events").insert({
-    match_id: matchId,
-    team_id: teamId,
-    player_id: playerId,
-    event_type: eventType,
-    minute,
-  });
-  if (error) console.error("Erreur ajout événement:", error.message);
+  const { error } = await supabase
+    .from("matches")
+    .update({ home_score: homeScore, away_score: awayScore, status, minute })
+    .eq("id", matchId);
+
+  if (error) console.error("Erreur mise à jour match:", error.message);
 
   await logActivity({
-    action: "Ajout d'événement de match",
-    entityType: "match_event",
+    action: "Mise à jour de match",
+    entityType: "match",
     entityId: matchId,
-    details: { eventType, minute },
+    details: { homeScore, awayScore, status, minute },
   });
 
-  revalidatePath(`/admin/matchs/${matchId}`);
-  revalidatePath(`/matchs/${matchId}`);
+  revalidatePath("/admin/matchs");
+  revalidatePath("/admin/saisie-rapide");
+  revalidatePath("/");
+  revalidatePath("/matchs");
 }
 
-export async function deleteEvent(matchId: string, eventId: string) {
+export async function deleteMatch(matchId: string) {
   const supabase = await createClient();
 
-  await supabase.from("match_events").delete().eq("id", eventId);
+  await supabase.from("matches").delete().eq("id", matchId);
 
   await logActivity({
-    action: "Suppression d'événement de match",
-    entityType: "match_event",
+    action: "Suppression de match",
+    entityType: "match",
     entityId: matchId,
     details: {},
   });
 
-  revalidatePath(`/admin/matchs/${matchId}`);
-}
-
-export async function updateLineup(matchId: string, teamId: string, formData: FormData) {
-  const supabase = await createClient();
-
-  await supabase.from("match_lineups").delete().eq("match_id", matchId).eq("team_id", teamId);
-
-  const rows: {
-    match_id: string;
-    team_id: string;
-    player_id: string;
-    is_starter: boolean;
-    position: string | null;
-  }[] = [];
-
-  for (const [key, value] of formData.entries()) {
-    if (key.startsWith("status_")) {
-      const playerId = key.replace("status_", "");
-      const status = value as string;
-      if (status === "titulaire" || status === "remplacant") {
-        const position = (formData.get(`position_${playerId}`) as string) || null;
-        rows.push({
-          match_id: matchId,
-          team_id: teamId,
-          player_id: playerId,
-          is_starter: status === "titulaire",
-          position,
-        });
-      }
-    }
-  }
-
-  if (rows.length > 0) {
-    const { error } = await supabase.from("match_lineups").insert(rows);
-    if (error) console.error("Erreur mise à jour composition:", error.message);
-  }
-
-  await logActivity({
-    action: "Mise à jour de la composition",
-    entityType: "match_lineup",
-    entityId: matchId,
-    details: { teamId, count: rows.length },
-  });
-
-  revalidatePath(`/admin/matchs/${matchId}`);
-  revalidatePath(`/matchs/${matchId}`);
+  revalidatePath("/admin/matchs");
+  revalidatePath("/admin/saisie-rapide");
 }
