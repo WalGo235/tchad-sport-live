@@ -2,9 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { addEvent, deleteEvent, updateLineup, upsertStats } from "./actions";
+import PossessionInputs from "@/components/PossessionInputs";
 
 const STAT_ROWS: { key: string; label: string }[] = [
-  { key: "possession", label: "Possession (%)" },
   { key: "shots", label: "Tirs" },
   { key: "shotsOnTarget", label: "Tirs cadrés" },
   { key: "corners", label: "Corners" },
@@ -136,6 +136,9 @@ export default async function AdminMatchDetailPage({
             <span className="text-center">—</span>
             <span className="text-right">{awayTeam}</span>
           </div>
+
+          <PossessionInputs defaultHome={v("possession_home")} />
+
           {STAT_ROWS.map((row) => (
             <div key={row.key} className="flex items-center gap-2">
               <input
