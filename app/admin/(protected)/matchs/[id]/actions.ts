@@ -42,3 +42,46 @@ export async function upsertStats(matchId: string, formData: FormData) {
   revalidatePath(`/admin/matchs/${matchId}`);
   revalidatePath(`/matchs/${matchId}`);
 }
+
+export async function addEvent(matchId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const teamId = formData.get("teamId") as string;
+  const playerId = (formData.get("playerId") as string) || null;
+  const eventType = formData.get("eventType") as string;
+  const minute = (formData.get("minute") as string) || null;
+
+  const { error } = await supabase.from("match_events").insert({
+    match_id: matchId,
+    team_id: teamId,
+    player_id: playerId,
+    event_type: eventType,
+    minute,
+  });
+  if (error) console.error("Erreur ajout événement:", error.message);
+
+  await logActivity({
+    action: "Ajout d'événement de match",
+    entityType: "match_event",
+    entityId: matchId,
+    details: { eventType, minute },
+  });
+
+  revalidatePath(`/admin/matchs/${matchId}`);
+  revalidatePath(`/matchs/${matchId}`);
+}
+
+export async function deleteEvent(matchId: string, eventId: string) {
+  const supabase = await createClient();
+
+  await supabase.from("match_events").delete().eq("id", eventId);
+
+  await logActivity({
+    action: "Suppression d'événement de match",
+    entityType: "match_event",
+    entityId: matchId,
+    details: {},
+  });
+
+  revalidatePath(`/admin/matchs/${matchId}`);
+}
