@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { addEvent, deleteEvent, upsertStats } from "./actions";
+import { addEvent, deleteEvent, updateLineup, upsertStats } from "./actions";
 
 const STAT_ROWS: { key: string; label: string }[] = [
   { key: "possession", label: "Possession (%)" },
@@ -17,6 +17,64 @@ const EVENT_LABEL: Record<string, string> = {
   carton_jaune: "🟨 Carton jaune",
   carton_rouge: "🟥 Carton rouge",
 };
+
+function LineupForm({
+  teamId,
+  teamName,
+  players,
+  existingLineup,
+  action,
+}: {
+  teamId: string;
+  teamName: string;
+  players: { id: string; name: string }[];
+  existingLineup: { player_id: string; is_starter: boolean; position: string | null }[];
+  action: (formData: FormData) => Promise<void>;
+}) {
+  const lineupByPlayer = new Map(existingLineup.map((l) => [l.player_id, l]));
+
+  return (
+    <div className="mb-6">
+      <h3 className="text-xs uppercase tracking-wider text-gold mb-3">{teamName}</h3>
+      <form action={action} className="space-y-2">
+        {players.map((player) => {
+          const existing = lineupByPlayer.get(player.id);
+          const defaultStatus = existing ? (existing.is_starter ? "titulaire" : "remplacant") : "";
+          return (
+            <div key={player.id} className="flex items-center gap-2 bg-night border border-white/10 rounded-lg p-2">
+              <span className="flex-1 text-sm truncate">{player.name}</span>
+              <select
+                name={`status_${player.id}`}
+                defaultValue={defaultStatus}
+                className="bg-surface border border-white/10 rounded-lg px-2 py-1.5 text-sand text-xs"
+              >
+                <option value="">Non convoqué</option>
+                <option value="titulaire">Titulaire</option>
+                <option value="remplacant">Remplaçant</option>
+              </select>
+              <input
+                type="text"
+                name={`position_${player.id}`}
+                defaultValue={existing?.position ?? ""}
+                placeholder="Poste"
+                className="w-20 bg-surface border border-white/10 rounded-lg px-2 py-1.5 text-sand text-xs placeholder:text-muted"
+              />
+            </div>
+          );
+        })}
+        {players.length === 0 && <p className="text-sm text-muted">Aucun joueur enregistré pour ce club.</p>}
+        {players.length > 0 && (
+          <button
+            type="submit"
+            className="w-full bg-gold text-night font-semibold rounded-lg px-4 py-2 text-sm hover:opacity-90 transition-opacity"
+          >
+            Enregistrer la composition — {teamName}
+          </button>
+        )}
+      </form>
+    </div>
+  );
+}
 
 export default async function AdminMatchDetailPage({
   params,
@@ -36,16 +94,18 @@ export default async function AdminMatchDetailPage({
 
   if (!match) notFound();
 
-  const [{ data: stats }, { data: homePlayers }, { data: awayPlayers }, { data: events }] = await Promise.all([
-    supabase.from("match_stats").select("*").eq("match_id", id).maybeSingle(),
-    supabase.from("players").select("id, name").eq("team_id", match.home_team_id).order("name"),
-    supabase.from("players").select("id, name").eq("team_id", match.away_team_id).order("name"),
-    supabase
-      .from("match_events")
-      .select("id, event_type, minute, team_id, player:players(name)")
-      .eq("match_id", id)
-      .order("minute"),
-  ]);
+  const [{ data: stats }, { data: homePlayers }, { data: awayPlayers }, { data: events }, { data: lineups }] =
+    await Promise.all([
+      supabase.from("match_stats").select("*").eq("match_id", id).maybeSingle(),
+      supabase.from("players").select("id, name").eq("team_id", match.home_team_id).order("name"),
+      supabase.from("players").select("id, name").eq("team_id", match.away_team_id).order("name"),
+      supabase
+        .from("match_events")
+        .select("id, event_type, minute, team_id, player:players(name)")
+        .eq("match_id", id)
+        .order("minute"),
+      supabase.from("match_lineups").select("team_id, player_id, is_starter, position").eq("match_id", id),
+    ]);
 
   const homeTeam = (match.home_team as unknown as { name: string } | null)?.name ?? "?";
   const awayTeam = (match.away_team as unknown as { name: string } | null)?.name ?? "?";
@@ -54,6 +114,9 @@ export default async function AdminMatchDetailPage({
     const value = stats?.[key as keyof typeof stats];
     return value === null || value === undefined ? "" : (value as number);
   };
+
+  const homeLineup = (lineups ?? []).filter((l) => l.team_id === match.home_team_id);
+  const awayLineup = (lineups ?? []).filter((l) => l.team_id === match.away_team_id);
 
   return (
     <section className="mx-auto max-w-2xl px-4 py-10">
@@ -99,7 +162,7 @@ export default async function AdminMatchDetailPage({
         </form>
       </div>
 
-      <div className="bg-surface border border-white/10 rounded-lg p-4">
+      <div className="bg-surface border border-white/10 rounded-lg p-4 mb-6">
         <h2 className="font-semibold mb-4">Événements (buts, cartons)</h2>
 
         {events && events.length > 0 && (
@@ -166,6 +229,24 @@ export default async function AdminMatchDetailPage({
             Ajouter l&apos;événement
           </button>
         </form>
+      </div>
+
+      <div className="bg-surface border border-white/10 rounded-lg p-4">
+        <h2 className="font-semibold mb-4">Composition</h2>
+        <LineupForm
+          teamId={match.home_team_id}
+          teamName={homeTeam}
+          players={homePlayers ?? []}
+          existingLineup={homeLineup}
+          action={updateLineup.bind(null, id, match.home_team_id)}
+        />
+        <LineupForm
+          teamId={match.away_team_id}
+          teamName={awayTeam}
+          players={awayPlayers ?? []}
+          existingLineup={awayLineup}
+          action={updateLineup.bind(null, id, match.away_team_id)}
+        />
       </div>
     </section>
   );
