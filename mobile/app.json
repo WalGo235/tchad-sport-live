@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "tchadsportlive-mobile",
-    "slug": "tchadsportlive-mobile",
+    "slug": "tchadsportlive",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
