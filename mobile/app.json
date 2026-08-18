@@ -7,11 +7,12 @@
     "icon": "./assets/images/icon.png",
     "scheme": "tchadsportlivemobile",
     "userInterfaceStyle": "automatic",
+    "owner": "walgo",
     "ios": {
       "icon": "./assets/images/icon.png"
     },
     "android": {
-  "package": "com.walgo235.tchadsportlive",
+      "package": "com.walgo235.tchadsportlive",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -36,6 +37,11 @@
     ],
     "experiments": {
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3dd79e48-9de6-41b3-82fb-423a31142f8b"
+      }
     }
   }
 }
