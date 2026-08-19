@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Switch } from 'react-native';
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }) {
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [language, setLanguage] = useState('fr');
@@ -9,7 +9,15 @@ export default function SettingsScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>⚙️ Paramètres</Text>
+        <Text style={styles.title}>👤 Profil</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Mon activité</Text>
+        <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate('Favorites')}>
+          <Text style={styles.linkLabel}>❤️ Mes équipes favorites</Text>
+          <Text style={styles.linkArrow}>→</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
@@ -101,6 +109,9 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   section: { backgroundColor: '#fff', marginTop: 10, padding: 15, borderTopWidth: 1, borderTopColor: '#eee' },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#0052CC', marginBottom: 15 },
+  linkRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
+  linkLabel: { fontSize: 14, fontWeight: '600', color: '#333' },
+  linkArrow: { fontSize: 16, color: '#0052CC', fontWeight: 'bold' },
   settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
   settingLabel: { fontSize: 14, fontWeight: '600', color: '#333' },
   settingDescription: { fontSize: 12, color: '#999', marginTop: 3 },
