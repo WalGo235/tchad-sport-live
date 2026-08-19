@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { colors } from './src/theme';
 
 import HomeScreen from './src/screens/HomeScreen';
 import MatchesScreen from './src/screens/MatchesScreen';
@@ -18,76 +19,62 @@ import MatchDetailScreen from './src/screens/MatchDetailScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+const stackHeaderOptions = {
+  headerShown: true,
+  headerStyle: { backgroundColor: colors.navy },
+  headerTintColor: '#fff',
+};
+
 function BottomTabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#0052CC',
-        tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: colors.gold,
+        tabBarInactiveTintColor: '#8891A5',
         tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopWidth: 1,
-          borderTopColor: '#eee',
-          paddingBottom: 5,
-          paddingTop: 5,
+          backgroundColor: colors.navy,
+          borderTopWidth: 0,
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: 64,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
         },
       }}
     >
-      <Tab.Screen 
-        name="Home" 
+      <Tab.Screen
+        name="Home"
         component={HomeScreen}
         options={{
           tabBarLabel: 'Accueil',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text>,
         }}
       />
-      <Tab.Screen 
-        name="Matches" 
+      <Tab.Screen
+        name="Matches"
         component={MatchesScreen}
         options={{
           tabBarLabel: 'Matchs',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📅</Text>,
         }}
       />
-      <Tab.Screen 
-        name="Standings" 
+      <Tab.Screen
+        name="Standings"
         component={StandingsScreen}
         options={{
           tabBarLabel: 'Classement',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏆</Text>,
         }}
       />
-      <Tab.Screen 
-        name="Teams" 
-        component={TeamsScreen}
-        options={{
-          tabBarLabel: 'Équipes',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>⚽</Text>,
-        }}
-      />
-      <Tab.Screen 
-        name="News" 
-        component={NewsScreen}
-        options={{
-          tabBarLabel: 'Actualités',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📰</Text>,
-        }}
-      />
-      <Tab.Screen 
-        name="Favorites" 
-        component={FavoritesScreen}
-        options={{
-          tabBarLabel: 'Favoris',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>❤️</Text>,
-        }}
-      />
-      <Tab.Screen 
-        name="Settings" 
+      <Tab.Screen
+        name="Settings"
         component={SettingsScreen}
         options={{
-          tabBarLabel: 'Paramètres',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>⚙️</Text>,
+          tabBarLabel: 'Profil',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text>,
         }}
       />
     </Tab.Navigator>
@@ -101,15 +88,25 @@ export default function App() {
         <NavigationContainer>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="MainApp" component={BottomTabNavigator} />
-            <Stack.Screen 
-              name="MatchDetail" 
+            <Stack.Screen
+              name="MatchDetail"
               component={MatchDetailScreen}
-              options={{
-                headerShown: true,
-                title: 'Détails du Match',
-                headerStyle: { backgroundColor: '#0052CC' },
-                headerTintColor: '#fff',
-              }}
+              options={{ ...stackHeaderOptions, title: 'Détails du Match' }}
+            />
+            <Stack.Screen
+              name="Teams"
+              component={TeamsScreen}
+              options={{ ...stackHeaderOptions, title: 'Équipes' }}
+            />
+            <Stack.Screen
+              name="Favorites"
+              component={FavoritesScreen}
+              options={{ ...stackHeaderOptions, title: 'Mes Favoris' }}
+            />
+            <Stack.Screen
+              name="News"
+              component={NewsScreen}
+              options={{ ...stackHeaderOptions, title: 'Actualités' }}
             />
           </Stack.Navigator>
         </NavigationContainer>
