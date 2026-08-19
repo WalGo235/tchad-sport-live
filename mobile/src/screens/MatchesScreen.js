@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, Text, ActivityIndicator } from 'react-native';
+import { View, ScrollView, StyleSheet, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
 
-export default function MatchesScreen() {
+export default function MatchesScreen({ navigation }) {
   const { matches, setMatches } = useAppStore();
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +47,11 @@ export default function MatchesScreen() {
       </View>
 
       {matches.map(match => (
-        <View key={match.id} style={styles.matchCard}>
+        <TouchableOpacity
+          key={match.id}
+          style={styles.matchCard}
+          onPress={() => navigation.navigate('MatchDetail', { matchId: match.id })}
+        >
           <View style={[styles.statusBadge, { backgroundColor: getStatusColor(match.status) }]}>
             <Text style={styles.statusText}>
               {match.status === 'scheduled' ? 'Programmé' : match.status === 'live' ? 'EN DIRECT' : 'Terminé'}
@@ -77,7 +81,7 @@ export default function MatchesScreen() {
             
             <Text style={styles.stadium}>📍 {match.venue || 'Stade'}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
       ))}
     </ScrollView>
   );
