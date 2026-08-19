@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, Text, ActivityIndicator } from 'react-native';
+import { View, ScrollView, StyleSheet, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
   const { matches, news, setMatches, setNews } = useAppStore();
   const [loading, setLoading] = useState(true);
 
@@ -54,10 +54,14 @@ export default function HomeScreen() {
           <Text style={styles.emptyText}>Aucun match aujourd'hui</Text>
         ) : (
           todayMatches.map(match => (
-            <View key={match.id} style={styles.matchCard}>
+            <TouchableOpacity
+              key={match.id}
+              style={styles.matchCard}
+              onPress={() => navigation.navigate('MatchDetail', { matchId: match.id })}
+            >
               <Text style={styles.matchTeam}>{match.home_team?.name} vs {match.away_team?.name}</Text>
               <Text style={styles.matchTime}>{new Date(match.match_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</Text>
-            </View>
+            </TouchableOpacity>
           ))
         )}
       </View>
