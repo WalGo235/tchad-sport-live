@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
+import { colors, radius, shadow, spacing } from '../theme';
 
 export default function HomeScreen({ navigation }) {
   const { matches, news, setMatches, setNews } = useAppStore();
@@ -29,50 +31,85 @@ export default function HomeScreen({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0052CC" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.navy} />
       </View>
     );
   }
 
-  const todayMatches = matches.filter(m => {
-    const matchDate = new Date(m.match_date).toDateString();
-    const today = new Date().toDateString();
-    return matchDate === today;
-  });
+  const now = new Date();
+  const nextMatch = matches
+    .filter(m => m.status === 'scheduled' && new Date(m.match_date) >= now)
+    .sort((a, b) => new Date(a.match_date) - new Date(b.match_date))[0];
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>🏆 TchadSportLive</Text>
-        <Text style={styles.subtitle}>Division 1 de Football Tchadien</Text>
-      </View>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.appTitle}>TchadSportLive</Text>
+      <Text style={styles.appSubtitle}>Division 1 de Football Tchadien</Text>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>⚡ Matchs d'aujourd'hui</Text>
-        {todayMatches.length === 0 ? (
-          <Text style={styles.emptyText}>Aucun match aujourd'hui</Text>
+        <Text style={styles.sectionTitle}>Prochain match</Text>
+        {nextMatch ? (
+          <TouchableOpacity
+            style={styles.nextMatchCard}
+            onPress={() => navigation.navigate('MatchDetail', { matchId: nextMatch.id })}
+          >
+            <View style={styles.nextMatchTeam}>
+              {nextMatch.home_team?.logo_url ? (
+                <Image source={{ uri: nextMatch.home_team.logo_url }} style={styles.teamLogo} contentFit="contain" />
+              ) : (
+                <View style={styles.teamLogoPlaceholder} />
+              )}
+              <Text style={styles.nextMatchTeamName} numberOfLines={1}>{nextMatch.home_team?.name}</Text>
+            </View>
+
+            <View style={styles.nextMatchCenter}>
+              <Text style={styles.vsLabel}>VS</Text>
+              <Text style={styles.nextMatchDate}>
+                {new Date(nextMatch.match_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+              </Text>
+              <Text style={styles.nextMatchTime}>
+                {new Date(nextMatch.match_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            </View>
+
+            <View style={styles.nextMatchTeam}>
+              {nextMatch.away_team?.logo_url ? (
+                <Image source={{ uri: nextMatch.away_team.logo_url }} style={styles.teamLogo} contentFit="contain" />
+              ) : (
+                <View style={styles.teamLogoPlaceholder} />
+              )}
+              <Text style={styles.nextMatchTeamName} numberOfLines={1}>{nextMatch.away_team?.name}</Text>
+            </View>
+          </TouchableOpacity>
         ) : (
-          todayMatches.map(match => (
-            <TouchableOpacity
-              key={match.id}
-              style={styles.matchCard}
-              onPress={() => navigation.navigate('MatchDetail', { matchId: match.id })}
-            >
-              <Text style={styles.matchTeam}>{match.home_team?.name} vs {match.away_team?.name}</Text>
-              <Text style={styles.matchTime}>{new Date(match.match_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</Text>
-            </TouchableOpacity>
-          ))
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyText}>Aucun match à venir programmé</Text>
+          </View>
         )}
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>📰 Actualités</Text>
-        {news.slice(0, 3).map(article => (
-          <View key={article.id} style={styles.newsCard}>
-            <Text style={styles.newsTitle}>{article.title}</Text>
-            <Text style={styles.newsDate}>{new Date(article.published_at).toLocaleDateString('fr-FR')}</Text>
-          </View>
+        <View style={styles.sectionTitleRow}>
+          <Text style={styles.sectionTitle}>Actualités</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('News')}>
+            <Text style={styles.seeAllLink}>Voir tout →</Text>
+          </TouchableOpacity>
+        </View>
+        {news.slice(0, 5).map(article => (
+          <TouchableOpacity key={article.id} style={styles.newsRow}>
+            {article.cover_image_url ? (
+              <Image source={{ uri: article.cover_image_url }} style={styles.newsThumb} contentFit="cover" />
+            ) : (
+              <View style={[styles.newsThumb, styles.newsThumbPlaceholder]}>
+                <Text style={styles.newsThumbIcon}>📰</Text>
+              </View>
+            )}
+            <View style={styles.newsTextBlock}>
+              <Text style={styles.newsTitle} numberOfLines={2}>{article.title}</Text>
+              <Text style={styles.newsDate}>{new Date(article.published_at).toLocaleDateString('fr-FR')}</Text>
+            </View>
+          </TouchableOpacity>
         ))}
       </View>
     </ScrollView>
@@ -80,17 +117,53 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { backgroundColor: '#0052CC', padding: 20, alignItems: 'center' },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#fff' },
-  subtitle: { fontSize: 14, color: '#FCD34D', marginTop: 5 },
-  section: { padding: 15 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#0052CC', marginBottom: 10 },
-  matchCard: { backgroundColor: '#fff', padding: 12, marginBottom: 10, borderRadius: 8, borderLeftWidth: 4, borderLeftColor: '#DC2626' },
-  matchTeam: { fontSize: 16, fontWeight: '600', color: '#333' },
-  matchTime: { fontSize: 12, color: '#666', marginTop: 5 },
-  newsCard: { backgroundColor: '#fff', padding: 12, marginBottom: 10, borderRadius: 8 },
-  newsTitle: { fontSize: 14, fontWeight: '600', color: '#333' },
-  newsDate: { fontSize: 12, color: '#999', marginTop: 5 },
-  emptyText: { fontSize: 14, color: '#999', textAlign: 'center', paddingVertical: 20 },
+  container: { flex: 1, backgroundColor: colors.background },
+  loadingContainer: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
+  content: { padding: spacing.lg, paddingBottom: spacing.xl },
+  appTitle: { fontSize: 26, fontWeight: '700', color: colors.navy },
+  appSubtitle: { fontSize: 13, fontWeight: '500', color: colors.textSecondary, marginTop: 2, marginBottom: spacing.lg },
+  section: { marginBottom: spacing.lg },
+  sectionTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: colors.navy, textTransform: 'uppercase', letterSpacing: 0.5 },
+  seeAllLink: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
+  nextMatchCard: {
+    backgroundColor: colors.navy,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    ...shadow,
+  },
+  nextMatchTeam: { flex: 1, alignItems: 'center' },
+  teamLogo: { width: 48, height: 48, marginBottom: spacing.sm },
+  teamLogoPlaceholder: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.15)', marginBottom: spacing.sm },
+  nextMatchTeamName: { color: '#fff', fontSize: 13, fontWeight: '600', textAlign: 'center' },
+  nextMatchCenter: { alignItems: 'center', paddingHorizontal: spacing.sm },
+  vsLabel: { color: colors.gold, fontSize: 12, fontWeight: '700', marginBottom: spacing.xs },
+  nextMatchDate: { color: '#fff', fontSize: 13, fontWeight: '600', textTransform: 'capitalize' },
+  nextMatchTime: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
+  emptyCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    alignItems: 'center',
+    ...shadow,
+  },
+  emptyText: { color: colors.textMuted, fontSize: 13 },
+  newsRow: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
+    alignItems: 'center',
+    ...shadow,
+  },
+  newsThumb: { width: 56, height: 56, borderRadius: radius.sm, backgroundColor: colors.border },
+  newsThumbPlaceholder: { alignItems: 'center', justifyContent: 'center' },
+  newsThumbIcon: { fontSize: 20 },
+  newsTextBlock: { flex: 1, marginLeft: spacing.md },
+  newsTitle: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, lineHeight: 19 },
+  newsDate: { fontSize: 11, color: colors.textMuted, marginTop: 4 },
 });
