@@ -13,6 +13,7 @@ import TeamsScreen from './src/screens/TeamsScreen';
 import NewsScreen from './src/screens/NewsScreen';
 import FavoritesScreen from './src/screens/FavoritesScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import MatchDetailScreen from './src/screens/MatchDetailScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -100,6 +101,16 @@ export default function App() {
         <NavigationContainer>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="MainApp" component={BottomTabNavigator} />
+            <Stack.Screen 
+              name="MatchDetail" 
+              component={MatchDetailScreen}
+              options={{
+                headerShown: true,
+                title: 'Détails du Match',
+                headerStyle: { backgroundColor: '#0052CC' },
+                headerTintColor: '#fff',
+              }}
+            />
           </Stack.Navigator>
         </NavigationContainer>
       </GestureHandlerRootView>
