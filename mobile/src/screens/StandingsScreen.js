@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, ActivityIndicator, FlatList } from 'react-native';
+import { View, StyleSheet, Text, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
 
-export default function StandingsScreen() {
+export default function StandingsScreen({ navigation }) {
   const { standings, setStandings } = useAppStore();
   const [loading, setLoading] = useState(true);
 
@@ -49,6 +49,9 @@ export default function StandingsScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>🏆 Classement</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Teams')}>
+          <Text style={styles.teamsLink}>⚽ Équipes →</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.tableHeader}>
@@ -75,8 +78,9 @@ export default function StandingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { backgroundColor: '#0052CC', padding: 20 },
+  header: { backgroundColor: '#0052CC', padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
+  teamsLink: { fontSize: 13, fontWeight: '600', color: '#FCD34D' },
   tableHeader: { flexDirection: 'row', backgroundColor: '#333', padding: 10, alignItems: 'center' },
   headerPos: { width: 30, color: '#fff', fontWeight: 'bold', fontSize: 12 },
   headerTeam: { flex: 1, color: '#fff', fontWeight: 'bold', fontSize: 12 },
