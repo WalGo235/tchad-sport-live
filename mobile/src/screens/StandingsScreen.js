@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
 
@@ -25,9 +26,11 @@ export default function StandingsScreen({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0052CC" />
-      </View>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.container}>
+          <ActivityIndicator size="large" color="#0052CC" />
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -46,37 +49,39 @@ export default function StandingsScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>🏆 Classement</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Teams')}>
-          <Text style={styles.teamsLink}>⚽ Équipes →</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.tableHeader}>
-        <Text style={styles.headerPos}>#</Text>
-        <Text style={styles.headerTeam}>Équipe</Text>
-        <View style={styles.headerStats}>
-          <Text style={styles.headerStat}>J</Text>
-          <Text style={styles.headerStat}>G</Text>
-          <Text style={styles.headerStat}>N</Text>
-          <Text style={styles.headerStat}>P</Text>
-          <Text style={styles.headerPoints}>Pts</Text>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>🏆 Classement</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Teams')}>
+            <Text style={styles.teamsLink}>⚽ Équipes →</Text>
+          </TouchableOpacity>
         </View>
-      </View>
 
-      <FlatList
-        data={standings}
-        renderItem={renderStandingRow}
-        keyExtractor={(item) => item.id.toString()}
-        scrollEnabled={false}
-      />
-    </View>
+        <View style={styles.tableHeader}>
+          <Text style={styles.headerPos}>#</Text>
+          <Text style={styles.headerTeam}>Équipe</Text>
+          <View style={styles.headerStats}>
+            <Text style={styles.headerStat}>J</Text>
+            <Text style={styles.headerStat}>G</Text>
+            <Text style={styles.headerStat}>N</Text>
+            <Text style={styles.headerStat}>P</Text>
+            <Text style={styles.headerPoints}>Pts</Text>
+          </View>
+        </View>
+
+        <FlatList
+          data={standings}
+          renderItem={renderStandingRow}
+          keyExtractor={(item) => item.id.toString()}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#0052CC' },
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { backgroundColor: '#0052CC', padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
