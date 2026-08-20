@@ -1,11 +1,25 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Switch } from 'react-native';
+import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppStore } from '../store/appStore';
+import { supabase } from '../config/supabase';
 
 export default function SettingsScreen({ navigation }) {
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [language, setLanguage] = useState('fr');
+  const user = useAppStore((state) => state.user);
+
+  const handleSignOut = async () => {
+    Alert.alert('Se déconnecter', 'Tu veux vraiment te déconnecter ?', [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Se déconnecter',
+        style: 'destructive',
+        onPress: () => supabase.auth.signOut(),
+      },
+    ]);
+  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -29,8 +43,8 @@ export default function SettingsScreen({ navigation }) {
               <Text style={styles.settingLabel}>Notifications en temps réel</Text>
               <Text style={styles.settingDescription}>Recevez les mises à jour des matchs</Text>
             </View>
-            <Switch 
-              value={notifications} 
+            <Switch
+              value={notifications}
               onValueChange={setNotifications}
               trackColor={{ false: '#ccc', true: '#0052CC' }}
             />
@@ -44,8 +58,8 @@ export default function SettingsScreen({ navigation }) {
               <Text style={styles.settingLabel}>Mode sombre</Text>
               <Text style={styles.settingDescription}>Thème sombre pour les yeux</Text>
             </View>
-            <Switch 
-              value={darkMode} 
+            <Switch
+              value={darkMode}
               onValueChange={setDarkMode}
               trackColor={{ false: '#ccc', true: '#0052CC' }}
             />
@@ -55,19 +69,19 @@ export default function SettingsScreen({ navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Langue</Text>
           <View style={styles.languageOptions}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.languageButton, language === 'fr' && styles.languageButtonActive]}
               onPress={() => setLanguage('fr')}
             >
               <Text style={[styles.languageText, language === 'fr' && styles.languageTextActive]}>Français</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.languageButton, language === 'en' && styles.languageButtonActive]}
               onPress={() => setLanguage('en')}
             >
               <Text style={[styles.languageText, language === 'en' && styles.languageTextActive]}>English</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.languageButton, language === 'ar' && styles.languageButtonActive]}
               onPress={() => setLanguage('ar')}
             >
@@ -78,12 +92,26 @@ export default function SettingsScreen({ navigation }) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Compte</Text>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Se connecter</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, styles.buttonSecondary]}>
-            <Text style={styles.buttonTextSecondary}>Créer un compte</Text>
-          </TouchableOpacity>
+          {user ? (
+            <>
+              <Text style={styles.accountEmail}>{user.email}</Text>
+              <TouchableOpacity style={[styles.button, styles.buttonDanger]} onPress={handleSignOut}>
+                <Text style={styles.buttonText}>Se déconnecter</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.buttonText}>Se connecter</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonSecondary]}
+                onPress={() => navigation.navigate('SignUp')}
+              >
+                <Text style={styles.buttonTextSecondary}>Créer un compte</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -124,7 +152,9 @@ const styles = StyleSheet.create({
   languageButtonActive: { backgroundColor: '#0052CC', borderColor: '#0052CC' },
   languageText: { fontSize: 12, color: '#666' },
   languageTextActive: { color: '#fff', fontWeight: 'bold' },
+  accountEmail: { fontSize: 14, color: '#333', marginBottom: 12, fontWeight: '600' },
   button: { backgroundColor: '#0052CC', paddingVertical: 12, borderRadius: 6, alignItems: 'center', marginVertical: 8 },
+  buttonDanger: { backgroundColor: '#DC2626' },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
   buttonSecondary: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#0052CC' },
   buttonTextSecondary: { color: '#0052CC', fontWeight: 'bold', fontSize: 14 },
