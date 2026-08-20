@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
 import { colors, radius, shadow, spacing } from '../theme';
@@ -31,9 +32,11 @@ export default function HomeScreen({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.navy} />
-      </View>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.navy} />
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -43,80 +46,83 @@ export default function HomeScreen({ navigation }) {
     .sort((a, b) => new Date(a.match_date) - new Date(b.match_date))[0];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.appTitle}>TchadSportLive</Text>
-      <Text style={styles.appSubtitle}>Division 1 de Football Tchadien</Text>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <Text style={styles.appTitle}>TchadSportLive</Text>
+        <Text style={styles.appSubtitle}>Division 1 de Football Tchadien</Text>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Prochain match</Text>
-        {nextMatch ? (
-          <TouchableOpacity
-            style={styles.nextMatchCard}
-            onPress={() => navigation.navigate('MatchDetail', { matchId: nextMatch.id })}
-          >
-            <View style={styles.nextMatchTeam}>
-              {nextMatch.home_team?.logo_url ? (
-                <Image source={{ uri: nextMatch.home_team.logo_url }} style={styles.teamLogo} contentFit="contain" />
-              ) : (
-                <View style={styles.teamLogoPlaceholder} />
-              )}
-              <Text style={styles.nextMatchTeamName} numberOfLines={1}>{nextMatch.home_team?.name}</Text>
-            </View>
-
-            <View style={styles.nextMatchCenter}>
-              <Text style={styles.vsLabel}>VS</Text>
-              <Text style={styles.nextMatchDate}>
-                {new Date(nextMatch.match_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-              </Text>
-              <Text style={styles.nextMatchTime}>
-                {new Date(nextMatch.match_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-              </Text>
-            </View>
-
-            <View style={styles.nextMatchTeam}>
-              {nextMatch.away_team?.logo_url ? (
-                <Image source={{ uri: nextMatch.away_team.logo_url }} style={styles.teamLogo} contentFit="contain" />
-              ) : (
-                <View style={styles.teamLogoPlaceholder} />
-              )}
-              <Text style={styles.nextMatchTeamName} numberOfLines={1}>{nextMatch.away_team?.name}</Text>
-            </View>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyText}>Aucun match à venir programmé</Text>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionTitleRow}>
-          <Text style={styles.sectionTitle}>Actualités</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('News')}>
-            <Text style={styles.seeAllLink}>Voir tout →</Text>
-          </TouchableOpacity>
-        </View>
-        {news.slice(0, 5).map(article => (
-          <TouchableOpacity key={article.id} style={styles.newsRow}>
-            {article.cover_image_url ? (
-              <Image source={{ uri: article.cover_image_url }} style={styles.newsThumb} contentFit="cover" />
-            ) : (
-              <View style={[styles.newsThumb, styles.newsThumbPlaceholder]}>
-                <Text style={styles.newsThumbIcon}>📰</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Prochain match</Text>
+          {nextMatch ? (
+            <TouchableOpacity
+              style={styles.nextMatchCard}
+              onPress={() => navigation.navigate('MatchDetail', { matchId: nextMatch.id })}
+            >
+              <View style={styles.nextMatchTeam}>
+                {nextMatch.home_team?.logo_url ? (
+                  <Image source={{ uri: nextMatch.home_team.logo_url }} style={styles.teamLogo} contentFit="contain" />
+                ) : (
+                  <View style={styles.teamLogoPlaceholder} />
+                )}
+                <Text style={styles.nextMatchTeamName} numberOfLines={1}>{nextMatch.home_team?.name}</Text>
               </View>
-            )}
-            <View style={styles.newsTextBlock}>
-              <Text style={styles.newsTitle} numberOfLines={2}>{article.title}</Text>
-              <Text style={styles.newsDate}>{new Date(article.published_at).toLocaleDateString('fr-FR')}</Text>
+
+              <View style={styles.nextMatchCenter}>
+                <Text style={styles.vsLabel}>VS</Text>
+                <Text style={styles.nextMatchDate}>
+                  {new Date(nextMatch.match_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                </Text>
+                <Text style={styles.nextMatchTime}>
+                  {new Date(nextMatch.match_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </View>
+
+              <View style={styles.nextMatchTeam}>
+                {nextMatch.away_team?.logo_url ? (
+                  <Image source={{ uri: nextMatch.away_team.logo_url }} style={styles.teamLogo} contentFit="contain" />
+                ) : (
+                  <View style={styles.teamLogoPlaceholder} />
+                )}
+                <Text style={styles.nextMatchTeamName} numberOfLines={1}>{nextMatch.away_team?.name}</Text>
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyText}>Aucun match à venir programmé</Text>
             </View>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </ScrollView>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionTitleRow}>
+            <Text style={styles.sectionTitle}>Actualités</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('News')}>
+              <Text style={styles.seeAllLink}>Voir tout →</Text>
+            </TouchableOpacity>
+          </View>
+          {news.slice(0, 5).map(article => (
+            <TouchableOpacity key={article.id} style={styles.newsRow}>
+              {article.cover_image_url ? (
+                <Image source={{ uri: article.cover_image_url }} style={styles.newsThumb} contentFit="cover" />
+              ) : (
+                <View style={[styles.newsThumb, styles.newsThumbPlaceholder]}>
+                  <Text style={styles.newsThumbIcon}>📰</Text>
+                </View>
+              )}
+              <View style={styles.newsTextBlock}>
+                <Text style={styles.newsTitle} numberOfLines={2}>{article.title}</Text>
+                <Text style={styles.newsDate}>{new Date(article.published_at).toLocaleDateString('fr-FR')}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1, backgroundColor: colors.background },
   loadingContainer: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
   content: { padding: spacing.lg, paddingBottom: spacing.xl },
