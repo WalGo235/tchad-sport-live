@@ -1,6 +1,25 @@
-import { createClient } from '@supabase/supabase-js';
+import { AppState } from 'react-native';
+import { createClient, processLock } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const supabase = createClient(
-  'https://iqsrxyuazktyiyhpbzie.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlxc3J4eXVhemt0eWl5aHBiemllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxMTA2NzgsImV4cCI6MjEwMDY4NjY3OH0.zBOf6UO5lX060IXRFUsdHUYxOUO9XOJ5bZzO5msU1ss'
+  process.env.EXPO_PUBLIC_SUPABASE_URL,
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+  {
+    auth: {
+      storage: AsyncStorage,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+      lock: processLock,
+    },
+  }
 );
+
+AppState.addEventListener('change', (state) => {
+  if (state === 'active') {
+    supabase.auth.startAutoRefresh();
+  } else {
+    supabase.auth.stopAutoRefresh();
+  }
+});
