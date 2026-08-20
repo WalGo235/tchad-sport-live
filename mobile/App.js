@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -6,6 +6,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors } from './src/theme';
+import { supabase } from './src/config/supabase';
+import { useAppStore } from './src/store/appStore';
 
 import HomeScreen from './src/screens/HomeScreen';
 import MatchesScreen from './src/screens/MatchesScreen';
@@ -15,6 +17,8 @@ import NewsScreen from './src/screens/NewsScreen';
 import FavoritesScreen from './src/screens/FavoritesScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import MatchDetailScreen from './src/screens/MatchDetailScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import SignUpScreen from './src/screens/SignUpScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -82,6 +86,22 @@ function BottomTabNavigator() {
 }
 
 export default function App() {
+  const setUser = useAppStore((state) => state.setUser);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [setUser]);
+
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -107,6 +127,16 @@ export default function App() {
               name="News"
               component={NewsScreen}
               options={{ ...stackHeaderOptions, title: 'Actualités' }}
+            />
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{ ...stackHeaderOptions, title: 'Connexion' }}
+            />
+            <Stack.Screen
+              name="SignUp"
+              component={SignUpScreen}
+              options={{ ...stackHeaderOptions, title: 'Créer un compte' }}
             />
           </Stack.Navigator>
         </NavigationContainer>
