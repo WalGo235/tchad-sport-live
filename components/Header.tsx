@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { href: "/matchs", label: "📅 Calendrier des Matchs" },
   { href: "/competitions", label: "Compétitions" },
   { href: "/actualites", label: "Actualités" },
+  { href: "/communaute", label: "Communauté" },
 ];
 
 const HISTOIRE_LINKS = [
