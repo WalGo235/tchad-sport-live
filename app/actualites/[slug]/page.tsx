@@ -32,6 +32,14 @@ export default async function ArticleDetailPage({
 
   return (
     <article className="mx-auto max-w-2xl px-4 py-16">
+      {article.coverImageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={article.coverImageUrl}
+          alt={article.title}
+          className="w-full rounded-lg mb-6 object-cover max-h-96"
+        />
+      )}
       <p className="text-sm text-muted mb-2">{article.publishedAt}</p>
       <h1 className="font-display text-3xl sm:text-4xl tracking-wide mb-6">{article.title}</h1>
       <div className="text-muted leading-relaxed whitespace-pre-line">{article.content}</div>
