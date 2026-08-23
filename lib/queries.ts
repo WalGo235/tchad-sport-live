@@ -150,13 +150,14 @@ export interface ArticleRow {
   excerpt: string;
   author: string;
   publishedAt: string;
+  coverImageUrl: string | null;
 }
 
 export async function getArticles(): Promise<ArticleRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("articles")
-    .select("id, title, slug, content, author, published_at")
+    .select("id, title, slug, content, author, published_at, cover_image_url")
     .order("published_at", { ascending: false });
 
   if (error || !data) return [];
@@ -168,6 +169,7 @@ export async function getArticles(): Promise<ArticleRow[]> {
     excerpt: row.content ?? "",
     author: row.author ?? "Rédaction",
     publishedAt: row.published_at?.slice(0, 10) ?? "",
+    coverImageUrl: row.cover_image_url,
   }));
 }
 
@@ -177,13 +179,14 @@ export interface ArticleDetail {
   content: string;
   author: string;
   publishedAt: string;
+  coverImageUrl: string | null;
 }
 
 export async function getArticleBySlug(slug: string): Promise<ArticleDetail | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("articles")
-    .select("id, title, content, author, published_at")
+    .select("id, title, content, author, published_at, cover_image_url")
     .eq("slug", slug)
     .single();
 
@@ -195,6 +198,7 @@ export async function getArticleBySlug(slug: string): Promise<ArticleDetail | nu
     content: data.content ?? "",
     author: data.author ?? "Rédaction",
     publishedAt: data.published_at?.slice(0, 10) ?? "",
+    coverImageUrl: data.cover_image_url,
   };
 }
 
