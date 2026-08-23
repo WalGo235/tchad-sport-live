@@ -10,6 +10,8 @@ const NAV_LINKS = [
   { href: "/", label: "Accueil" },
   { href: "/matchs", label: "📅 Calendrier des Matchs" },
   { href: "/competitions", label: "Compétitions" },
+  { href: "/clubs", label: "Clubs" },
+  { href: "/joueurs", label: "Joueurs" },
   { href: "/actualites", label: "Actualités" },
   { href: "/communaute", label: "Communauté" },
 ];
@@ -52,7 +54,7 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="hidden lg:flex gap-5 text-sm font-medium text-muted items-center">
+        <nav className="hidden lg:flex gap-4 text-sm font-medium text-muted items-center">
           {NAV_LINKS.map((link) => (
             <Link key={link.href} href={link.href} className="whitespace-nowrap hover:text-sand transition-colors">
               {link.label}
