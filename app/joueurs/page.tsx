@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getAllPlayers } from "@/lib/queries";
+import PlayersSearchGrid from "@/components/PlayersSearchGrid";
 
 export const metadata: Metadata = {
   title: "Joueurs — TchadSportLive",
@@ -19,32 +19,7 @@ export default async function JoueursPage() {
       {players.length === 0 ? (
         <p className="text-muted">Aucun joueur enregistré pour l&apos;instant.</p>
       ) : (
-        <div className="grid sm:grid-cols-2 gap-4">
-          {players.map((player) => (
-            <Link
-              key={player.id}
-              href={`/joueurs/${player.id}`}
-              className="bg-surface border border-white/10 rounded-lg p-4 flex items-center gap-3 hover:border-gold/50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
-            >
-              {player.photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={player.photoUrl} alt={player.name} className="w-12 h-12 rounded-full object-cover" />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-night border border-white/10 flex items-center justify-center font-display text-gold text-sm">
-                  {player.jerseyNumber ?? player.name.charAt(0)}
-                </div>
-              )}
-              <div>
-                <p className="font-semibold">{player.name}</p>
-                <p className="text-sm text-muted">
-                  {player.position}
-                  {player.position && player.teamName ? " · " : ""}
-                  {player.teamName}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <PlayersSearchGrid players={players} />
       )}
     </section>
   );
