@@ -13,6 +13,25 @@ function slugify(title: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+async function uploadFile(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  file: File | null,
+  folder: string
+) {
+  if (!file || file.size === 0) return null;
+
+  const fileExt = file.name.split(".").pop() || "jpg";
+  const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+
+  const { error: uploadError } = await supabase.storage.from("photos").upload(fileName, file);
+  if (uploadError) {
+    console.error("Erreur upload storage:", uploadError.message);
+    return null;
+  }
+
+  return `https://iqsrxyuazktyiyhpbzie.supabase.co/storage/v1/object/public/photos/${fileName}`;
+}
+
 export async function createArticle(formData: FormData) {
   const supabase = await createClient();
 
@@ -25,11 +44,13 @@ export async function createArticle(formData: FormData) {
     return;
   }
 
+  const coverImageUrl = await uploadFile(supabase, formData.get("coverImageFile") as File | null, "articles");
+
   const slug = `${slugify(title)}-${Date.now()}`;
 
   const { data } = await supabase
     .from("articles")
-    .insert({ title, content, author, slug })
+    .insert({ title, content, author, slug, cover_image_url: coverImageUrl })
     .select("id")
     .single();
 
