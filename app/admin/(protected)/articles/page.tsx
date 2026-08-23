@@ -30,7 +30,8 @@ export default async function AdminArticlesPage() {
         <input
           type="text"
           name="author"
-          placeholder="Auteur (optionnel)"
+          required
+          placeholder="Auteur"
           className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted"
         />
         <button
