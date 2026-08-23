@@ -34,6 +34,15 @@ export default async function AdminArticlesPage() {
           placeholder="Auteur"
           className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted"
         />
+        <div>
+          <label className="text-xs text-muted block mb-1">Photo de couverture (optionnel)</label>
+          <input
+            type="file"
+            name="coverImageFile"
+            accept="image/*"
+            className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand text-sm file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-gold file:text-night file:font-semibold"
+          />
+        </div>
         <button
           type="submit"
           className="w-full bg-gold text-night font-semibold rounded-lg px-4 py-2 hover:opacity-90 transition-opacity"
