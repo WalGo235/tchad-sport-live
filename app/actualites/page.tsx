@@ -20,12 +20,18 @@ export default async function ActualitesPage() {
           <Link
             key={article.id}
             href={`/actualites/${article.slug}`}
-            className="block bg-surface border border-white/10 rounded-lg p-4 hover:border-gold/50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
+            className="block bg-surface border border-white/10 rounded-lg overflow-hidden hover:border-gold/50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
           >
-            <p className="text-xs text-muted mb-2">{article.publishedAt}</p>
-            <h2 className="font-semibold text-lg mb-2">{article.title}</h2>
-            <p className="text-sm text-muted">{article.excerpt}</p>
-            <p className="text-xs text-muted mt-3">Par {article.author}</p>
+            {article.coverImageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={article.coverImageUrl} alt={article.title} className="w-full h-40 object-cover" />
+            )}
+            <div className="p-4">
+              <p className="text-xs text-muted mb-2">{article.publishedAt}</p>
+              <h2 className="font-semibold text-lg mb-2">{article.title}</h2>
+              <p className="text-sm text-muted">{article.excerpt}</p>
+              <p className="text-xs text-muted mt-3">Par {article.author}</p>
+            </div>
           </Link>
         ))}
       </div>
