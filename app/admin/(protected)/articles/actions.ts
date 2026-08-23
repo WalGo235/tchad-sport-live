@@ -18,7 +18,13 @@ export async function createArticle(formData: FormData) {
 
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
-  const author = (formData.get("author") as string) || "Rédaction";
+  const author = formData.get("author") as string;
+
+  if (!author || !author.trim()) {
+    console.error("Erreur création article : auteur manquant");
+    return;
+  }
+
   const slug = `${slugify(title)}-${Date.now()}`;
 
   const { data } = await supabase
@@ -31,7 +37,7 @@ export async function createArticle(formData: FormData) {
     action: "Ajout d'article",
     entityType: "article",
     entityId: data?.id,
-    details: { title },
+    details: { title, author },
   });
 
   revalidatePath("/admin/articles");
