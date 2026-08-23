@@ -348,3 +348,43 @@ export async function getPlayerDetail(id: string): Promise<PlayerDetail | null> 
     team: (data.team as unknown as { id: string; name: string } | null) ?? null,
   };
 }
+
+export interface ClubListItem {
+  id: string;
+  name: string;
+  city: string | null;
+  logoUrl: string | null;
+}
+
+export async function getAllClubs(): Promise<ClubListItem[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("teams").select("id, name, city, logo_url").order("name");
+  if (error || !data) return [];
+  return data.map((t) => ({ id: t.id, name: t.name, city: t.city, logoUrl: t.logo_url }));
+}
+
+export interface PlayerListItem {
+  id: string;
+  name: string;
+  position: string | null;
+  jerseyNumber: number | null;
+  photoUrl: string | null;
+  teamName: string | null;
+}
+
+export async function getAllPlayers(): Promise<PlayerListItem[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("players")
+    .select("id, name, position, jersey_number, photo_url, team:teams(name)")
+    .order("name");
+  if (error || !data) return [];
+  return data.map((p) => ({
+    id: p.id,
+    name: p.name,
+    position: p.position,
+    jerseyNumber: p.jersey_number,
+    photoUrl: p.photo_url,
+    teamName: (p.team as unknown as { name: string } | null)?.name ?? null,
+  }));
+}
