@@ -3,13 +3,14 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { addEvent, deleteEvent, updateLineup, upsertStats } from "./actions";
 import PossessionInputs from "@/components/PossessionInputs";
+import Stepper from "@/components/Stepper";
 
-const STAT_ROWS: { key: string; label: string }[] = [
-  { key: "shots", label: "Tirs" },
-  { key: "shotsOnTarget", label: "Tirs cadrés" },
-  { key: "corners", label: "Corners" },
-  { key: "fouls", label: "Fautes" },
-  { key: "offsides", label: "Hors-jeu" },
+const STAT_ROWS: { homeKey: string; awayKey: string; dbKey: string; label: string }[] = [
+  { homeKey: "shotsHome", awayKey: "shotsAway", dbKey: "shots", label: "Tirs" },
+  { homeKey: "shotsOnTargetHome", awayKey: "shotsOnTargetAway", dbKey: "shots_on_target", label: "Tirs cadrés" },
+  { homeKey: "cornersHome", awayKey: "cornersAway", dbKey: "corners", label: "Corners" },
+  { homeKey: "foulsHome", awayKey: "foulsAway", dbKey: "fouls", label: "Fautes" },
+  { homeKey: "offsidesHome", awayKey: "offsidesAway", dbKey: "offsides", label: "Hors-jeu" },
 ];
 
 const EVENT_LABEL: Record<string, string> = {
@@ -110,7 +111,7 @@ export default async function AdminMatchDetailPage({
   const homeTeam = (match.home_team as unknown as { name: string } | null)?.name ?? "?";
   const awayTeam = (match.away_team as unknown as { name: string } | null)?.name ?? "?";
 
-  const v = (key: string) => {
+  const v = (key: string): number | "" => {
     const value = stats?.[key as keyof typeof stats];
     return value === null || value === undefined ? "" : (value as number);
   };
@@ -140,20 +141,10 @@ export default async function AdminMatchDetailPage({
           <PossessionInputs defaultHome={v("possession_home")} />
 
           {STAT_ROWS.map((row) => (
-            <div key={row.key} className="flex items-center gap-2">
-              <input
-                type="number"
-                name={`${row.key}Home`}
-                defaultValue={v(`${row.key.replace(/([A-Z])/g, "_$1").toLowerCase()}_home`)}
-                className="w-20 bg-night border border-white/10 rounded-lg px-2 py-2 text-sand text-center"
-              />
-              <span className="flex-1 text-sm text-muted text-center">{row.label}</span>
-              <input
-                type="number"
-                name={`${row.key}Away`}
-                defaultValue={v(`${row.key.replace(/([A-Z])/g, "_$1").toLowerCase()}_away`)}
-                className="w-20 bg-night border border-white/10 rounded-lg px-2 py-2 text-sand text-center"
-              />
+            <div key={row.dbKey} className="flex items-center gap-2">
+              <Stepper name={row.homeKey} defaultValue={v(`${row.dbKey}_home`)} align="left" />
+              <span className="text-xs text-muted text-center shrink-0 w-20">{row.label}</span>
+              <Stepper name={row.awayKey} defaultValue={v(`${row.dbKey}_away`)} align="right" />
             </div>
           ))}
           <button
