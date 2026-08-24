@@ -5,6 +5,8 @@ const STATUS_LABEL: Record<MatchStatus, string> = {
   scheduled: "À venir",
   live: "EN DIRECT",
   halftime: "MI-TEMPS",
+  extra_time: "PROLONGATION",
+  penalties: "TIRS AU BUT",
   finished: "Terminé",
   postponed: "Reporté",
 };
@@ -24,7 +26,7 @@ function TeamLogo({ url, name }: { url?: string | null; name: string }) {
 }
 
 export default function MatchScheduleCard({ match }: { match: MatchCardData }) {
-  const isLive = match.status === "live";
+  const isLive = match.status === "live" || match.status === "extra_time" || match.status === "penalties";
   const date = match.matchDate ? new Date(match.matchDate) : null;
   const formattedDate = date
     ? date.toLocaleDateString("fr-FR", { year: "numeric", month: "2-digit", day: "2-digit" })
@@ -49,7 +51,7 @@ export default function MatchScheduleCard({ match }: { match: MatchCardData }) {
           }`}
         >
           {isLive && <span className="h-1.5 w-1.5 rounded-full bg-live animate-pulse" />}
-          {isLive ? `${STATUS_LABEL.live} · ${match.minute ?? ""}` : STATUS_LABEL[match.status]}
+          {match.status === "live" ? `${STATUS_LABEL.live} · ${match.minute ?? ""}` : STATUS_LABEL[match.status]}
         </span>
       </div>
 
@@ -63,9 +65,16 @@ export default function MatchScheduleCard({ match }: { match: MatchCardData }) {
           {match.status === "scheduled" ? (
             <span className="font-mono text-lg text-muted">{match.kickoff ?? "-"}</span>
           ) : (
-            <span className="font-mono text-2xl font-bold">
-              {match.homeScore} - {match.awayScore}
-            </span>
+            <>
+              <span className="font-mono text-2xl font-bold">
+                {match.homeScore} - {match.awayScore}
+              </span>
+              {match.status === "penalties" && match.penaltyHomeScore !== null && match.penaltyHomeScore !== undefined && (
+                <p className="text-xs text-gold mt-1">
+                  ({match.penaltyHomeScore} - {match.penaltyAwayScore} tab)
+                </p>
+              )}
+            </>
           )}
         </div>
 
