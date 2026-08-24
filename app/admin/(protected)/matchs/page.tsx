@@ -10,7 +10,7 @@ export default async function AdminMatchsPage() {
     supabase
       .from("matches")
       .select(
-        "id, home_score, away_score, status, minute, match_date, home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)"
+        "id, home_score, away_score, status, minute, match_date, penalty_home_score, penalty_away_score, home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)"
       )
       .order("match_date", { ascending: false }),
     supabase.from("teams").select("id, name").order("name"),
@@ -93,6 +93,8 @@ export default async function AdminMatchsPage() {
             <option value="scheduled">À venir</option>
             <option value="live">En direct</option>
             <option value="halftime">Mi-temps</option>
+            <option value="extra_time">Prolongation</option>
+            <option value="penalties">Tirs au but</option>
             <option value="finished">Terminé</option>
             <option value="postponed">Reporté</option>
           </select>
@@ -161,6 +163,8 @@ export default async function AdminMatchsPage() {
                   <option value="scheduled">À venir</option>
                   <option value="live">En direct</option>
                   <option value="halftime">Mi-temps</option>
+                  <option value="extra_time">Prolongation</option>
+                  <option value="penalties">Tirs au but</option>
                   <option value="finished">Terminé</option>
                   <option value="postponed">Reporté</option>
                 </select>
@@ -168,6 +172,27 @@ export default async function AdminMatchsPage() {
               <div>
                 <label className="text-xs text-muted block mb-1">Minute</label>
                 <MinuteInput defaultValue={match.minute ?? ""} />
+              </div>
+              <div>
+                <label className="text-xs text-muted block mb-1">
+                  Score des tirs au but (si applicable)
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    type="number"
+                    name="penaltyHomeScore"
+                    defaultValue={match.penalty_home_score ?? ""}
+                    placeholder="Domicile"
+                    className="flex-1 bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted"
+                  />
+                  <input
+                    type="number"
+                    name="penaltyAwayScore"
+                    defaultValue={match.penalty_away_score ?? ""}
+                    placeholder="Extérieur"
+                    className="flex-1 bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted"
+                  />
+                </div>
               </div>
               <button
                 type="submit"
