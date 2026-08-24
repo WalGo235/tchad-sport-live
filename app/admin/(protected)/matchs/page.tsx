@@ -69,6 +69,21 @@ export default async function AdminMatchsPage() {
           className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
         />
         <div>
+          <label className="text-xs text-muted block mb-1">Temps de jeu</label>
+          <select
+            name="halfDuration"
+            defaultValue="45"
+            className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
+          >
+            <option value="25">25 min x 2</option>
+            <option value="30">30 min x 2</option>
+            <option value="45">45 min x 2 (standard)</option>
+          </select>
+          <p className="text-xs text-muted mt-1">
+            Utilisé par l&apos;horloge automatique pour savoir quand passer en mi-temps.
+          </p>
+        </div>
+        <div>
           <label className="text-xs text-muted block mb-1">Statut du match</label>
           <select
             name="status"
