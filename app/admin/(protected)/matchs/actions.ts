@@ -13,6 +13,7 @@ export async function createMatch(formData: FormData) {
   const matchDate = formData.get("matchDate") as string;
   const venue = (formData.get("venue") as string) || null;
   const status = (formData.get("status") as string) || "scheduled";
+  const halfDuration = Number(formData.get("halfDuration")) || 45;
 
   const { data, error } = await supabase
     .from("matches")
@@ -23,6 +24,7 @@ export async function createMatch(formData: FormData) {
       match_date: matchDate,
       venue,
       status,
+      half_duration: halfDuration,
       home_score: 0,
       away_score: 0,
     })
@@ -35,11 +37,10 @@ export async function createMatch(formData: FormData) {
     action: "Ajout de match",
     entityType: "match",
     entityId: data?.id ?? undefined,
-    details: { competitionId, homeTeamId, awayTeamId, matchDate, status },
+    details: { competitionId, homeTeamId, awayTeamId, matchDate, status, halfDuration },
   });
 
   revalidatePath("/admin/matchs");
-  revalidatePath("/admin/saisie-rapide");
   revalidatePath("/");
   revalidatePath("/matchs");
 }
@@ -67,7 +68,6 @@ export async function updateMatch(matchId: string, formData: FormData) {
   });
 
   revalidatePath("/admin/matchs");
-  revalidatePath("/admin/saisie-rapide");
   revalidatePath("/");
   revalidatePath("/matchs");
 }
@@ -85,5 +85,4 @@ export async function deleteMatch(matchId: string) {
   });
 
   revalidatePath("/admin/matchs");
-  revalidatePath("/admin/saisie-rapide");
 }
