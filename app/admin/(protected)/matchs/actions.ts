@@ -73,4 +73,25 @@ export async function updateMatch(matchId: string, formData: FormData) {
     action: "Mise à jour de match",
     entityType: "match",
     entityId: matchId,
-    details: { homeScore, awayScore
+    details: { homeScore, awayScore, status, minute },
+  });
+
+  revalidatePath("/admin/matchs");
+  revalidatePath("/");
+  revalidatePath("/matchs");
+}
+
+export async function deleteMatch(matchId: string) {
+  const supabase = await createClient();
+
+  await supabase.from("matches").delete().eq("id", matchId);
+
+  await logActivity({
+    action: "Suppression de match",
+    entityType: "match",
+    entityId: matchId,
+    details: {},
+  });
+
+  revalidatePath("/admin/matchs");
+}
