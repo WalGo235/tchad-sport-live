@@ -52,10 +52,19 @@ export async function updateMatch(matchId: string, formData: FormData) {
   const awayScore = Number(formData.get("awayScore"));
   const status = formData.get("status") as string;
   const minute = (formData.get("minute") as string) || null;
+  const penaltyHomeRaw = formData.get("penaltyHomeScore") as string;
+  const penaltyAwayRaw = formData.get("penaltyAwayScore") as string;
 
   const { error } = await supabase
     .from("matches")
-    .update({ home_score: homeScore, away_score: awayScore, status, minute })
+    .update({
+      home_score: homeScore,
+      away_score: awayScore,
+      status,
+      minute,
+      penalty_home_score: penaltyHomeRaw ? Number(penaltyHomeRaw) : null,
+      penalty_away_score: penaltyAwayRaw ? Number(penaltyAwayRaw) : null,
+    })
     .eq("id", matchId);
 
   if (error) console.error("Erreur mise à jour match:", error.message);
@@ -64,25 +73,4 @@ export async function updateMatch(matchId: string, formData: FormData) {
     action: "Mise à jour de match",
     entityType: "match",
     entityId: matchId,
-    details: { homeScore, awayScore, status, minute },
-  });
-
-  revalidatePath("/admin/matchs");
-  revalidatePath("/");
-  revalidatePath("/matchs");
-}
-
-export async function deleteMatch(matchId: string) {
-  const supabase = await createClient();
-
-  await supabase.from("matches").delete().eq("id", matchId);
-
-  await logActivity({
-    action: "Suppression de match",
-    entityType: "match",
-    entityId: matchId,
-    details: {},
-  });
-
-  revalidatePath("/admin/matchs");
-}
+    details: { homeScore, awayScore
