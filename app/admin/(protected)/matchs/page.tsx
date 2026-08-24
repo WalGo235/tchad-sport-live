@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createMatch, deleteMatch, updateMatch } from "./actions";
+import MinuteInput from "@/components/MinuteInput";
 
 export default async function AdminMatchsPage() {
   const supabase = await createClient();
@@ -135,31 +136,23 @@ export default async function AdminMatchsPage() {
                   />
                 </div>
               </div>
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="text-xs text-muted block mb-1">Statut</label>
-                  <select
-                    name="status"
-                    defaultValue={match.status}
-                    className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
-                  >
-                    <option value="scheduled">À venir</option>
-                    <option value="live">En direct</option>
-                    <option value="halftime">Mi-temps</option>
-                    <option value="finished">Terminé</option>
-                    <option value="postponed">Reporté</option>
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="text-xs text-muted block mb-1">Minute</label>
-                  <input
-                    type="text"
-                    name="minute"
-                    defaultValue={match.minute ?? ""}
-                    placeholder="67'"
-                    className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
-                  />
-                </div>
+              <div>
+                <label className="text-xs text-muted block mb-1">Statut</label>
+                <select
+                  name="status"
+                  defaultValue={match.status}
+                  className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
+                >
+                  <option value="scheduled">À venir</option>
+                  <option value="live">En direct</option>
+                  <option value="halftime">Mi-temps</option>
+                  <option value="finished">Terminé</option>
+                  <option value="postponed">Reporté</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-muted block mb-1">Minute</label>
+                <MinuteInput defaultValue={match.minute ?? ""} />
               </div>
               <button
                 type="submit"
