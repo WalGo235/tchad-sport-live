@@ -1,9 +1,7 @@
 import type { MatchStatus } from "@/components/MatchCard";
 
-const FIRST_HALF = 45;
 const STOPPAGE_1 = 5;
 const HALFTIME_BREAK = 15;
-const SECOND_HALF = 45;
 const STOPPAGE_2 = 5;
 
 export interface ComputedMatchState {
@@ -13,11 +11,16 @@ export interface ComputedMatchState {
 
 /**
  * Calcule automatiquement le statut et la minute d'un match à partir de son
- * heure de coup d'envoi. Ne s'applique que si le statut stocké est
+ * heure de coup d'envoi et de la durée d'une mi-temps (45 min par défaut,
+ * personnalisable par match). Ne s'applique que si le statut stocké est
  * "scheduled" et que l'heure est déjà passée — tout autre statut stocké
- * (finished, postponed, ou live/halftime posé à la main) est respecté tel quel.
+ * (finished, postponed, ou live/halftime posé manuellement) est respecté tel quel.
  */
-export function computeMatchClock(storedStatus: string, matchDate: string): ComputedMatchState {
+export function computeMatchClock(
+  storedStatus: string,
+  matchDate: string,
+  halfDuration: number = 45
+): ComputedMatchState {
   if (storedStatus !== "scheduled") {
     return { status: storedStatus as MatchStatus };
   }
@@ -29,28 +32,28 @@ export function computeMatchClock(storedStatus: string, matchDate: string): Comp
     return { status: "scheduled" };
   }
 
-  if (elapsedMin < FIRST_HALF) {
+  if (elapsedMin < halfDuration) {
     return { status: "live", minute: `${Math.floor(elapsedMin) + 1}'` };
   }
 
-  if (elapsedMin < FIRST_HALF + STOPPAGE_1) {
-    const extra = Math.floor(elapsedMin - FIRST_HALF) + 1;
-    return { status: "live", minute: `45+${extra}'` };
+  if (elapsedMin < halfDuration + STOPPAGE_1) {
+    const extra = Math.floor(elapsedMin - halfDuration) + 1;
+    return { status: "live", minute: `${halfDuration}+${extra}'` };
   }
 
-  if (elapsedMin < FIRST_HALF + STOPPAGE_1 + HALFTIME_BREAK) {
+  if (elapsedMin < halfDuration + STOPPAGE_1 + HALFTIME_BREAK) {
     return { status: "halftime" };
   }
 
-  const secondHalfElapsed = elapsedMin - (FIRST_HALF + STOPPAGE_1 + HALFTIME_BREAK);
+  const secondHalfElapsed = elapsedMin - (halfDuration + STOPPAGE_1 + HALFTIME_BREAK);
 
-  if (secondHalfElapsed < SECOND_HALF) {
-    return { status: "live", minute: `${FIRST_HALF + Math.floor(secondHalfElapsed) + 1}'` };
+  if (secondHalfElapsed < halfDuration) {
+    return { status: "live", minute: `${halfDuration + Math.floor(secondHalfElapsed) + 1}'` };
   }
 
-  if (secondHalfElapsed < SECOND_HALF + STOPPAGE_2) {
-    const extra = Math.floor(secondHalfElapsed - SECOND_HALF) + 1;
-    return { status: "live", minute: `90+${extra}'` };
+  if (secondHalfElapsed < halfDuration + STOPPAGE_2) {
+    const extra = Math.floor(secondHalfElapsed - halfDuration) + 1;
+    return { status: "live", minute: `${halfDuration * 2}+${extra}'` };
   }
 
   return { status: "finished" };
