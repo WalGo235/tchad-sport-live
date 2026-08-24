@@ -17,6 +17,7 @@ type MatchRow = {
   match_date: string;
   minute: string | null;
   venue?: string | null;
+  half_duration?: number | null;
   home_team_id?: string;
   away_team_id?: string;
   competition: { name: string } | null;
@@ -25,7 +26,7 @@ type MatchRow = {
 };
 
 function toMatchCard(row: MatchRow): MatchCardData {
-  const computed = computeMatchClock(row.status ?? "scheduled", row.match_date);
+  const computed = computeMatchClock(row.status ?? "scheduled", row.match_date, row.half_duration ?? 45);
   return {
     id: row.id,
     competition: row.competition?.name ?? "",
@@ -48,7 +49,7 @@ export async function getMatches(): Promise<MatchCardData[]> {
   const { data, error } = await supabase
     .from("matches")
     .select(
-      "id, home_score, away_score, status, match_date, minute, venue, competition:competitions(name), home_team:teams!home_team_id(name, logo_url), away_team:teams!away_team_id(name, logo_url)"
+      "id, home_score, away_score, status, match_date, minute, venue, half_duration, competition:competitions(name), home_team:teams!home_team_id(name, logo_url), away_team:teams!away_team_id(name, logo_url)"
     )
     .order("match_date", { ascending: false });
 
@@ -76,7 +77,7 @@ export async function getMatchById(id: string): Promise<MatchDetail | null> {
   const { data, error } = await supabase
     .from("matches")
     .select(
-      "id, home_score, away_score, status, match_date, minute, venue, home_team_id, away_team_id, competition:competitions(name), home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)"
+      "id, home_score, away_score, status, match_date, minute, venue, half_duration, home_team_id, away_team_id, competition:competitions(name), home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)"
     )
     .eq("id", id)
     .single();
@@ -84,7 +85,7 @@ export async function getMatchById(id: string): Promise<MatchDetail | null> {
   if (error || !data) return null;
 
   const row = data as unknown as MatchRow;
-  const computed = computeMatchClock(row.status ?? "scheduled", row.match_date);
+  const computed = computeMatchClock(row.status ?? "scheduled", row.match_date, row.half_duration ?? 45);
 
   return {
     id: row.id,
