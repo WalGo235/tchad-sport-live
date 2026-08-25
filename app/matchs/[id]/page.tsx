@@ -7,6 +7,7 @@ import { createComment, toggleLike } from "@/lib/actions-social";
 import { createClient } from "@/lib/supabase/server";
 import MatchDetailLive from "@/components/MatchDetailLive";
 import CommentsSection from "@/components/CommentsSection";
+import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 
 export const revalidate = 60;
 
@@ -92,16 +93,22 @@ export default async function MatchDetailPage({
         {match.venue && <p>{match.venue}</p>}
       </div>
 
-      <form action={toggleLike.bind(null, "match", id, `/matchs/${id}`)} className="mb-10">
-        <button
-          type="submit"
-          className={`text-sm px-4 py-2 rounded-lg border transition-colors ${
-            likeInfo.likedByMe ? "bg-gold text-night border-gold" : "border-white/10 text-muted hover:border-gold/50"
-          }`}
-        >
-          👍 {likeInfo.count}
-        </button>
-      </form>
+      <div className="flex flex-wrap gap-3 mb-10">
+        <form action={toggleLike.bind(null, "match", id, `/matchs/${id}`)}>
+          <button
+            type="submit"
+            className={`text-sm px-4 py-2 rounded-lg border transition-colors ${
+              likeInfo.likedByMe ? "bg-gold text-night border-gold" : "border-white/10 text-muted hover:border-gold/50"
+            }`}
+          >
+            👍 {likeInfo.count}
+          </button>
+        </form>
+        <WhatsAppShareButton
+          title={`${match.homeTeam} ${match.homeScore}-${match.awayScore} ${match.awayTeam}`}
+          path={`/matchs/${id}`}
+        />
+      </div>
 
       {events.length > 0 && (
         <div className="mb-10">
