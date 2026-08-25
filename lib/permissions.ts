@@ -13,5 +13,5 @@ export function hasAccess(role: string, pathname: string): boolean {
   const allowed = ROLE_PERMISSIONS[role] ?? [];
   if (allowed.includes("*")) return true;
 
-  return allowed.some((prefix) => pathname.startsWith(prefix));
+  return allowed.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
