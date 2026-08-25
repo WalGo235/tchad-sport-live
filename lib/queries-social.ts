@@ -23,9 +23,15 @@ export interface CommentItem {
   content: string;
   authorName: string;
   createdAt: string;
+  likeCount: number;
+  likedByMe: boolean;
 }
 
-export async function getComments(targetType: string, targetId: string): Promise<CommentItem[]> {
+export async function getComments(
+  targetType: string,
+  targetId: string,
+  currentUserId: string | null
+): Promise<CommentItem[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("comments")
@@ -36,10 +42,35 @@ export async function getComments(targetType: string, targetId: string): Promise
 
   if (error || !data) return [];
 
-  return data.map((c) => ({
-    id: c.id,
-    content: c.content,
-    authorName: c.author_name ?? "Anonyme",
-    createdAt: c.created_at,
-  }));
+  const commentIds = data.map((c) => c.id);
+  let likes: { target_id: string; user_id: string }[] = [];
+
+  if (commentIds.length > 0) {
+    const { data: likesData } = await supabase
+      .from("forum_likes")
+      .select("target_id, user_id")
+      .eq("target_type", "comment")
+      .in("target_id", commentIds);
+    likes = likesData ?? [];
+  }
+
+  const likesByComment = new Map<string, { count: number; likedByMe: boolean }>();
+  for (const like of likes) {
+    const entry = likesByComment.get(like.target_id) ?? { count: 0, likedByMe: false };
+    entry.count += 1;
+    if (currentUserId && like.user_id === currentUserId) entry.likedByMe = true;
+    likesByComment.set(like.target_id, entry);
+  }
+
+  return data.map((c) => {
+    const l = likesByComment.get(c.id) ?? { count: 0, likedByMe: false };
+    return {
+      id: c.id,
+      content: c.content,
+      authorName: c.author_name ?? "Anonyme",
+      createdAt: c.created_at,
+      likeCount: l.count,
+      likedByMe: l.likedByMe,
+    };
+  });
 }
