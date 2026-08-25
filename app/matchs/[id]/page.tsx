@@ -61,7 +61,7 @@ export default async function MatchDetailPage({
     getMatchEvents(id),
     getMatchLineups(id, match.homeTeamId, match.awayTeamId),
     getLikeInfo("match", id, user?.id ?? null),
-    getComments("match", id),
+    getComments("match", id, user?.id ?? null),
   ]);
 
   const date = new Date(match.matchDate);
@@ -191,6 +191,7 @@ export default async function MatchDetailPage({
         comments={comments}
         isLoggedIn={!!user}
         action={createComment.bind(null, "match", id, `/matchs/${id}`)}
+        revalidateTargetPath={`/matchs/${id}`}
       />
     </section>
   );
