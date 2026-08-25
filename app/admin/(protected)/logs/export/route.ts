@@ -10,6 +10,14 @@ function escapeCsvField(value: string): string {
 
 export async function GET() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.redirect(new URL("/admin/login", "https://tchadsportlive.com"));
+  }
+
   const { data: logs } = await supabase
     .from("activity_logs")
     .select("user_email, user_name, action, entity_type, details, created_at")
@@ -33,4 +41,4 @@ export async function GET() {
       "Content-Disposition": `attachment; filename="logs_activite.csv"`,
     },
   });
-                          }
+}
