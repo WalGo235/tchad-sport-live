@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getMatchById } from "@/lib/queries";
 import { getMatchEvents, getMatchLineups, getMatchStats } from "@/lib/queries-match-details";
-import { getLikeInfo } from "@/lib/queries-social";
-import { toggleLike } from "@/lib/actions-social";
+import { getComments, getLikeInfo } from "@/lib/queries-social";
+import { createComment, toggleLike } from "@/lib/actions-social";
 import { createClient } from "@/lib/supabase/server";
 import MatchDetailLive from "@/components/MatchDetailLive";
+import CommentsSection from "@/components/CommentsSection";
 
 export const revalidate = 60;
 
@@ -55,11 +56,12 @@ export default async function MatchDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [stats, events, lineups, likeInfo] = await Promise.all([
+  const [stats, events, lineups, likeInfo, comments] = await Promise.all([
     getMatchStats(id),
     getMatchEvents(id),
     getMatchLineups(id, match.homeTeamId, match.awayTeamId),
     getLikeInfo("match", id, user?.id ?? null),
+    getComments("match", id),
   ]);
 
   const date = new Date(match.matchDate);
@@ -148,7 +150,7 @@ export default async function MatchDetailPage({
       )}
 
       {hasLineups && (
-        <div>
+        <div className="mb-10">
           <h2 className="font-display text-xl tracking-wide mb-4">COMPOSITIONS</h2>
           <div className="grid sm:grid-cols-2 gap-6">
             {[
@@ -184,6 +186,12 @@ export default async function MatchDetailPage({
           </div>
         </div>
       )}
+
+      <CommentsSection
+        comments={comments}
+        isLoggedIn={!!user}
+        action={createComment.bind(null, "match", id, `/matchs/${id}`)}
+      />
     </section>
   );
 }
