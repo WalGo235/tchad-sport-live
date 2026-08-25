@@ -31,3 +31,33 @@ export async function toggleLike(targetType: string, targetId: string, revalidat
 
   revalidatePath(revalidateTargetPath);
 }
+
+export async function createComment(
+  targetType: string,
+  targetId: string,
+  revalidateTargetPath: string,
+  formData: FormData
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/communaute/connexion");
+  }
+
+  const content = formData.get("content") as string;
+  if (!content?.trim()) return;
+
+  const authorName = (user.user_metadata?.display_name as string) || user.email || "Anonyme";
+
+  const { error } = await supabase
+    .from("comments")
+    .insert({ target_type: targetType, target_id: targetId, author_id: user.id, author_name: authorName, content });
+
+  if (error) console.error("Erreur ajout commentaire:", error.message);
+
+  revalidatePath(revalidateTargetPath);
+}
