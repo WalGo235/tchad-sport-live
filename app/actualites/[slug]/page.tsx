@@ -41,7 +41,7 @@ export default async function ArticleDetailPage({
 
   const [likeInfo, comments] = await Promise.all([
     getLikeInfo("article", article.id, user?.id ?? null),
-    getComments("article", article.id),
+    getComments("article", article.id, user?.id ?? null),
   ]);
 
   return (
@@ -74,6 +74,7 @@ export default async function ArticleDetailPage({
         comments={comments}
         isLoggedIn={!!user}
         action={createComment.bind(null, "article", article.id, `/actualites/${slug}`)}
+        revalidateTargetPath={`/actualites/${slug}`}
       />
     </article>
   );
