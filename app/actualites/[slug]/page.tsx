@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getArticleBySlug } from "@/lib/queries";
-import { getLikeInfo } from "@/lib/queries-social";
-import { toggleLike } from "@/lib/actions-social";
+import { getComments, getLikeInfo } from "@/lib/queries-social";
+import { createComment, toggleLike } from "@/lib/actions-social";
 import { createClient } from "@/lib/supabase/server";
+import CommentsSection from "@/components/CommentsSection";
 
 export const revalidate = 300;
 
@@ -37,7 +38,11 @@ export default async function ArticleDetailPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const likeInfo = await getLikeInfo("article", article.id, user?.id ?? null);
+
+  const [likeInfo, comments] = await Promise.all([
+    getLikeInfo("article", article.id, user?.id ?? null),
+    getComments("article", article.id),
+  ]);
 
   return (
     <article className="mx-auto max-w-2xl px-4 py-16">
@@ -64,6 +69,12 @@ export default async function ArticleDetailPage({
           👍 {likeInfo.count}
         </button>
       </form>
+
+      <CommentsSection
+        comments={comments}
+        isLoggedIn={!!user}
+        action={createComment.bind(null, "article", article.id, `/actualites/${slug}`)}
+      />
     </article>
   );
 }
