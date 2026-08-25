@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { hasAccess } from "@/lib/permissions";
 
 const MAIN_SECTIONS = [
   { href: "/admin/matchs", title: "Matchs", desc: "Mettre à jour les scores et statuts" },
@@ -41,23 +43,50 @@ function SectionGrid({ sections }: { sections: typeof MAIN_SECTIONS }) {
   );
 }
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let role = "";
+  if (user) {
+    const { data: adminRow } = await supabase.from("admin_users").select("role").eq("user_id", user.id).single();
+    role = adminRow?.role ?? "";
+  }
+
+  const visibleMain = MAIN_SECTIONS.filter((s) => hasAccess(role, s.href));
+  const visibleHistoire = HISTOIRE_SECTIONS.filter((s) => hasAccess(role, s.href));
+  const visibleSao = SAO_SECTIONS.filter((s) => hasAccess(role, s.href));
+
   return (
     <section className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-display text-4xl tracking-wide mb-8">ADMIN</h1>
 
-      <h2 className="text-xs uppercase tracking-wider text-gold mb-4">Site principal</h2>
-      <div className="mb-10">
-        <SectionGrid sections={MAIN_SECTIONS} />
-      </div>
+      {visibleMain.length > 0 && (
+        <>
+          <h2 className="text-xs uppercase tracking-wider text-gold mb-4">Site principal</h2>
+          <div className="mb-10">
+            <SectionGrid sections={visibleMain} />
+          </div>
+        </>
+      )}
 
-      <h2 className="text-xs uppercase tracking-wider text-gold mb-4">Histoire du football tchadien</h2>
-      <div className="mb-10">
-        <SectionGrid sections={HISTOIRE_SECTIONS} />
-      </div>
+      {visibleHistoire.length > 0 && (
+        <>
+          <h2 className="text-xs uppercase tracking-wider text-gold mb-4">Histoire du football tchadien</h2>
+          <div className="mb-10">
+            <SectionGrid sections={visibleHistoire} />
+          </div>
+        </>
+      )}
 
-      <h2 className="text-xs uppercase tracking-wider text-gold mb-4">Équipe Nationale — Les Sao</h2>
-      <SectionGrid sections={SAO_SECTIONS} />
+      {visibleSao.length > 0 && (
+        <>
+          <h2 className="text-xs uppercase tracking-wider text-gold mb-4">Équipe Nationale — Les Sao</h2>
+          <SectionGrid sections={visibleSao} />
+        </>
+      )}
     </section>
   );
 }
