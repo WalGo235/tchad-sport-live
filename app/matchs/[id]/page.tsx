@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getMatchById } from "@/lib/queries";
 import { getMatchEvents, getMatchLineups, getMatchStats } from "@/lib/queries-match-details";
+import { getLikeInfo } from "@/lib/queries-social";
+import { toggleLike } from "@/lib/actions-social";
+import { createClient } from "@/lib/supabase/server";
 import MatchDetailLive from "@/components/MatchDetailLive";
 
 export const revalidate = 60;
@@ -47,10 +50,16 @@ export default async function MatchDetailPage({
 
   if (!match) notFound();
 
-  const [stats, events, lineups] = await Promise.all([
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [stats, events, lineups, likeInfo] = await Promise.all([
     getMatchStats(id),
     getMatchEvents(id),
     getMatchLineups(id, match.homeTeamId, match.awayTeamId),
+    getLikeInfo("match", id, user?.id ?? null),
   ]);
 
   const date = new Date(match.matchDate);
@@ -76,10 +85,21 @@ export default async function MatchDetailPage({
         initialStatus={match.status}
         initialMinute={match.minute}
       />
-      <div className="space-y-2 text-sm text-muted mb-10">
+      <div className="space-y-2 text-sm text-muted mb-4">
         <p className="capitalize">{formattedDate}</p>
         {match.venue && <p>{match.venue}</p>}
       </div>
+
+      <form action={toggleLike.bind(null, "match", id, `/matchs/${id}`)} className="mb-10">
+        <button
+          type="submit"
+          className={`text-sm px-4 py-2 rounded-lg border transition-colors ${
+            likeInfo.likedByMe ? "bg-gold text-night border-gold" : "border-white/10 text-muted hover:border-gold/50"
+          }`}
+        >
+          👍 {likeInfo.count}
+        </button>
+      </form>
 
       {events.length > 0 && (
         <div className="mb-10">
