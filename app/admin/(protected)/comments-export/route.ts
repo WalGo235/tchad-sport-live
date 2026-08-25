@@ -10,18 +10,27 @@ function escapeCsvField(value: string): string {
 
 export async function GET() {
   const supabase = await createClient();
-  const { data: comments } = await supabase
-    .from("comments")
-    .select("target_type, target_id, author_name, content, created_at")
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.redirect(new URL("/admin/login", "https://tchadsportlive.com"));
+  }
+
+  const { data: logs } = await supabase
+    .from("activity_logs")
+    .select("user_email, user_name, action, entity_type, details, created_at")
     .order("created_at", { ascending: false });
 
-  const header = ["Type de contenu", "ID du contenu", "Auteur", "Commentaire", "Date"];
-  const rows = (comments ?? []).map((c) => [
-    c.target_type ?? "",
-    c.target_id ?? "",
-    c.author_name ?? "",
-    c.content ?? "",
-    new Date(c.created_at).toLocaleString("fr-FR"),
+  const header = ["Date", "Auteur (nom)", "Auteur (email)", "Action", "Type", "Détails"];
+  const rows = (logs ?? []).map((log) => [
+    new Date(log.created_at).toLocaleString("fr-FR"),
+    log.user_name ?? "",
+    log.user_email ?? "",
+    log.action ?? "",
+    log.entity_type ?? "",
+    log.details ? JSON.stringify(log.details) : "",
   ]);
 
   const csv = [header, ...rows].map((row) => row.map((f) => escapeCsvField(String(f))).join(",")).join("\n");
@@ -29,7 +38,7 @@ export async function GET() {
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="comments_likes.csv"`,
+      "Content-Disposition": `attachment; filename="logs_activite.csv"`,
     },
   });
 }
