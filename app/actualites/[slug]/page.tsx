@@ -5,6 +5,7 @@ import { getComments, getLikeInfo } from "@/lib/queries-social";
 import { createComment, toggleLike } from "@/lib/actions-social";
 import { createClient } from "@/lib/supabase/server";
 import CommentsSection from "@/components/CommentsSection";
+import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 
 export const revalidate = 300;
 
@@ -59,16 +60,19 @@ export default async function ArticleDetailPage({
       <div className="text-muted leading-relaxed whitespace-pre-line mb-6">{article.content}</div>
       <p className="text-sm text-muted mb-6">Par {article.author}</p>
 
-      <form action={toggleLike.bind(null, "article", article.id, `/actualites/${slug}`)}>
-        <button
-          type="submit"
-          className={`text-sm px-4 py-2 rounded-lg border transition-colors ${
-            likeInfo.likedByMe ? "bg-gold text-night border-gold" : "border-white/10 text-muted hover:border-gold/50"
-          }`}
-        >
-          👍 {likeInfo.count}
-        </button>
-      </form>
+      <div className="flex flex-wrap gap-3">
+        <form action={toggleLike.bind(null, "article", article.id, `/actualites/${slug}`)}>
+          <button
+            type="submit"
+            className={`text-sm px-4 py-2 rounded-lg border transition-colors ${
+              likeInfo.likedByMe ? "bg-gold text-night border-gold" : "border-white/10 text-muted hover:border-gold/50"
+            }`}
+          >
+            👍 {likeInfo.count}
+          </button>
+        </form>
+        <WhatsAppShareButton title={article.title} path={`/actualites/${slug}`} />
+      </div>
 
       <CommentsSection
         comments={comments}
