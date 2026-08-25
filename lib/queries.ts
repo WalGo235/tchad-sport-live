@@ -355,13 +355,23 @@ export interface ClubListItem {
   name: string;
   city: string | null;
   logoUrl: string | null;
+  division: string | null;
 }
 
 export async function getAllClubs(): Promise<ClubListItem[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("teams").select("id, name, city, logo_url").order("name");
+  const { data, error } = await supabase
+    .from("teams")
+    .select("id, name, city, logo_url, current_division")
+    .order("name");
   if (error || !data) return [];
-  return data.map((t) => ({ id: t.id, name: t.name, city: t.city, logoUrl: t.logo_url }));
+  return data.map((t) => ({
+    id: t.id,
+    name: t.name,
+    city: t.city,
+    logoUrl: t.logo_url,
+    division: t.current_division,
+  }));
 }
 
 export interface PlayerListItem {
