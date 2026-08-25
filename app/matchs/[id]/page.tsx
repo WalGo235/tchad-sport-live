@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getMatchById } from "@/lib/queries";
-import { getMatchEvents, getMatchLineups, getMatchStats } from "@/lib/queries-match-details";
+import { getHeadToHead, getMatchEvents, getMatchLineups, getMatchStats } from "@/lib/queries-match-details";
 import { getComments, getLikeInfo } from "@/lib/queries-social";
 import { createComment, toggleLike } from "@/lib/actions-social";
 import { createClient } from "@/lib/supabase/server";
@@ -57,12 +58,13 @@ export default async function MatchDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [stats, events, lineups, likeInfo, comments] = await Promise.all([
+  const [stats, events, lineups, likeInfo, comments, headToHead] = await Promise.all([
     getMatchStats(id),
     getMatchEvents(id),
     getMatchLineups(id, match.homeTeamId, match.awayTeamId),
     getLikeInfo("match", id, user?.id ?? null),
     getComments("match", id, user?.id ?? null),
+    getHeadToHead(id, match.homeTeamId, match.awayTeamId),
   ]);
 
   const date = new Date(match.matchDate);
@@ -75,6 +77,7 @@ export default async function MatchDetailPage({
 
   const hasStats = stats && Object.values(stats).some((v) => v !== null);
   const hasLineups = lineups.home.length > 0 || lineups.away.length > 0;
+  const now = new Date();
 
   return (
     <section className="mx-auto max-w-2xl px-4 py-16">
@@ -109,6 +112,32 @@ export default async function MatchDetailPage({
           path={`/matchs/${id}`}
         />
       </div>
+
+      {headToHead.length > 0 && (
+        <div className="mb-10">
+          <h2 className="font-display text-xl tracking-wide mb-4">FACE-À-FACE</h2>
+          <div className="space-y-2">
+            {headToHead.map((h) => {
+              const isFuture = new Date(h.matchDate) > now;
+              return (
+                <Link
+                  key={h.id}
+                  href={`/matchs/${h.id}`}
+                  className="flex items-center justify-between gap-3 bg-surface border border-white/10 rounded-lg px-3 py-2 text-sm hover:border-gold/50 transition-colors"
+                >
+                  <span className="flex-1">
+                    {h.homeTeam} {isFuture ? "vs" : `${h.homeScore} - ${h.awayScore}`} {h.awayTeam}
+                  </span>
+                  <span className="text-xs text-muted shrink-0">
+                    {isFuture && "📅 "}
+                    {new Date(h.matchDate).toLocaleDateString("fr-FR")}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {events.length > 0 && (
         <div className="mb-10">
