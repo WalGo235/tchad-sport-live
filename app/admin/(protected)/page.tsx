@@ -2,10 +2,12 @@ import Link from "next/link";
 
 const MAIN_SECTIONS = [
   { href: "/admin/matchs", title: "Matchs", desc: "Mettre à jour les scores et statuts" },
+  { href: "/admin/mes-matchs", title: "Mes matchs", desc: "Le(s) match(s) qui te sont assignés (reporter)" },
   { href: "/admin/articles", title: "Articles", desc: "Créer et modifier les actualités" },
   { href: "/admin/clubs", title: "Clubs", desc: "Ajouter et modifier les clubs" },
   { href: "/admin/joueurs", title: "Joueurs", desc: "Gérer les profils des joueurs" },
   { href: "/admin/competitions", title: "Compétitions", desc: "Créer et modifier les compétitions" },
+  { href: "/admin/logs", title: "Logs d'activité", desc: "Qui a fait quoi, et export CSV" },
 ];
 
 const HISTOIRE_SECTIONS = [
