@@ -98,3 +98,44 @@ export async function getMatchLineups(
     away: rows.filter((r) => r.teamId === awayTeamId),
   };
 }
+
+export interface HeadToHeadMatch {
+  id: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeScore: number;
+  awayScore: number;
+  status: string;
+  matchDate: string;
+}
+
+export async function getHeadToHead(
+  currentMatchId: string,
+  homeTeamId: string,
+  awayTeamId: string
+): Promise<HeadToHeadMatch[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("matches")
+    .select(
+      "id, home_score, away_score, status, match_date, home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)"
+    )
+    .or(
+      `and(home_team_id.eq.${homeTeamId},away_team_id.eq.${awayTeamId}),and(home_team_id.eq.${awayTeamId},away_team_id.eq.${homeTeamId})`
+    )
+    .neq("id", currentMatchId)
+    .order("match_date", { ascending: false })
+    .limit(10);
+
+  if (error || !data) return [];
+
+  return data.map((row) => ({
+    id: row.id,
+    homeTeam: (row.home_team as unknown as { name: string } | null)?.name ?? "",
+    awayTeam: (row.away_team as unknown as { name: string } | null)?.name ?? "",
+    homeScore: row.home_score ?? 0,
+    awayScore: row.away_score ?? 0,
+    status: row.status ?? "",
+    matchDate: row.match_date,
+  }));
+}
