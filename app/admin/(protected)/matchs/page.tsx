@@ -6,16 +6,19 @@ import MinuteInput from "@/components/MinuteInput";
 export default async function AdminMatchsPage() {
   const supabase = await createClient();
 
-  const [{ data: matches }, { data: teams }, { data: competitions }] = await Promise.all([
+  const [{ data: matches }, { data: teams }, { data: competitions }, { data: reporters }] = await Promise.all([
     supabase
       .from("matches")
       .select(
-        "id, home_score, away_score, status, minute, match_date, penalty_home_score, penalty_away_score, home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)"
+        "id, home_score, away_score, status, minute, match_date, penalty_home_score, penalty_away_score, assigned_reporter_id, home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)"
       )
       .order("match_date", { ascending: false }),
     supabase.from("teams").select("id, name").order("name"),
     supabase.from("competitions").select("id, name").order("name"),
+    supabase.rpc("get_reporters"),
   ]);
+
+  const reporterOptions = (reporters as { user_id: string; email: string }[] | null) ?? [];
 
   return (
     <section className="mx-auto max-w-2xl px-4 py-10">
@@ -79,9 +82,6 @@ export default async function AdminMatchsPage() {
             <option value="30">30 min x 2</option>
             <option value="45">45 min x 2 (standard)</option>
           </select>
-          <p className="text-xs text-muted mt-1">
-            Utilisé par l&apos;horloge automatique pour savoir quand passer en mi-temps.
-          </p>
         </div>
         <div>
           <label className="text-xs text-muted block mb-1">Statut du match</label>
@@ -98,8 +98,23 @@ export default async function AdminMatchsPage() {
             <option value="finished">Terminé</option>
             <option value="postponed">Reporté</option>
           </select>
+        </div>
+        <div>
+          <label className="text-xs text-muted block mb-1">Reporter assigné (optionnel)</label>
+          <select
+            name="assignedReporterId"
+            defaultValue=""
+            className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
+          >
+            <option value="">— Aucun —</option>
+            {reporterOptions.map((r) => (
+              <option key={r.user_id} value={r.user_id}>
+                {r.email}
+              </option>
+            ))}
+          </select>
           <p className="text-xs text-muted mt-1">
-            Laisse "À venir" pour qu&apos;il passe automatiquement en direct à l&apos;heure prévue.
+            Un reporter déjà pris à moins de 3h de ce match sera refusé automatiquement.
           </p>
         </div>
         <input
@@ -172,6 +187,21 @@ export default async function AdminMatchsPage() {
               <div>
                 <label className="text-xs text-muted block mb-1">Minute</label>
                 <MinuteInput defaultValue={match.minute ?? ""} />
+              </div>
+              <div>
+                <label className="text-xs text-muted block mb-1">Reporter assigné</label>
+                <select
+                  name="assignedReporterId"
+                  defaultValue={match.assigned_reporter_id ?? ""}
+                  className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
+                >
+                  <option value="">— Aucun —</option>
+                  {reporterOptions.map((r) => (
+                    <option key={r.user_id} value={r.user_id}>
+                      {r.email}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="text-xs text-muted block mb-1">
