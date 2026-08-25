@@ -1,14 +1,17 @@
 import Link from "next/link";
 import type { CommentItem } from "@/lib/queries-social";
+import { toggleLike } from "@/lib/actions-social";
 
 export default function CommentsSection({
   comments,
   isLoggedIn,
   action,
+  revalidateTargetPath,
 }: {
   comments: CommentItem[];
   isLoggedIn: boolean;
   action: (formData: FormData) => Promise<void>;
+  revalidateTargetPath: string;
 }) {
   return (
     <div className="mt-10">
@@ -21,9 +24,21 @@ export default function CommentsSection({
           {comments.map((c) => (
             <div key={c.id} className="bg-surface border border-white/10 rounded-lg p-4">
               <p className="text-sand whitespace-pre-line mb-2">{c.content}</p>
-              <p className="text-xs text-muted">
-                {c.authorName} · {new Date(c.createdAt).toLocaleDateString("fr-FR")}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted">
+                  {c.authorName} · {new Date(c.createdAt).toLocaleDateString("fr-FR")}
+                </p>
+                <form action={toggleLike.bind(null, "comment", c.id, revalidateTargetPath)}>
+                  <button
+                    type="submit"
+                    className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                      c.likedByMe ? "bg-gold text-night border-gold" : "border-white/10 text-muted hover:border-gold/50"
+                    }`}
+                  >
+                    👍 {c.likeCount}
+                  </button>
+                </form>
+              </div>
             </div>
           ))}
         </div>
