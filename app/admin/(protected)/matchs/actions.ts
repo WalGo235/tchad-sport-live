@@ -38,6 +38,16 @@ async function checkReporterConflict(
   return null;
 }
 
+async function isSuperAdmin(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const { data: adminRow } = await supabase.from("admin_users").select("role").eq("user_id", user.id).single();
+  return adminRow?.role === "super_admin";
+}
+
 export async function createMatch(formData: FormData) {
   const supabase = await createClient();
 
@@ -48,13 +58,19 @@ export async function createMatch(formData: FormData) {
   const venue = (formData.get("venue") as string) || null;
   const status = (formData.get("status") as string) || "scheduled";
   const halfDuration = Number(formData.get("halfDuration")) || 45;
-  const assignedReporterId = (formData.get("assignedReporterId") as string) || null;
+
+  let assignedReporterId = (formData.get("assignedReporterId") as string) || null;
 
   if (assignedReporterId) {
-    const conflict = await checkReporterConflict(supabase, assignedReporterId, matchDate, null);
-    if (conflict) {
-      console.error("Conflit reporter:", conflict);
-      return;
+    if (!(await isSuperAdmin(supabase))) {
+      console.error("Tentative d'assignation de reporter refusée : rôle insuffisant");
+      assignedReporterId = null;
+    } else {
+      const conflict = await checkReporterConflict(supabase, assignedReporterId, matchDate, null);
+      if (conflict) {
+        console.error("Conflit reporter:", conflict);
+        return;
+      }
     }
   }
 
@@ -98,31 +114,33 @@ export async function updateMatch(matchId: string, formData: FormData) {
   const minute = (formData.get("minute") as string) || null;
   const penaltyHomeRaw = formData.get("penaltyHomeScore") as string;
   const penaltyAwayRaw = formData.get("penaltyAwayScore") as string;
-  const assignedReporterId = (formData.get("assignedReporterId") as string) || null;
 
-  if (assignedReporterId) {
-    const { data: match } = await supabase.from("matches").select("match_date").eq("id", matchId).single();
-    if (match) {
-      const conflict = await checkReporterConflict(supabase, assignedReporterId, match.match_date, matchId);
-      if (conflict) {
-        console.error("Conflit reporter:", conflict);
-        return;
+  const superAdmin = await isSuperAdmin(supabase);
+  const payload: Record<string, unknown> = {
+    home_score: homeScore,
+    away_score: awayScore,
+    status,
+    minute,
+    penalty_home_score: penaltyHomeRaw ? Number(penaltyHomeRaw) : null,
+    penalty_away_score: penaltyAwayRaw ? Number(penaltyAwayRaw) : null,
+  };
+
+  if (superAdmin) {
+    const assignedReporterId = (formData.get("assignedReporterId") as string) || null;
+    if (assignedReporterId) {
+      const { data: match } = await supabase.from("matches").select("match_date").eq("id", matchId).single();
+      if (match) {
+        const conflict = await checkReporterConflict(supabase, assignedReporterId, match.match_date, matchId);
+        if (conflict) {
+          console.error("Conflit reporter:", conflict);
+          return;
+        }
       }
     }
+    payload.assigned_reporter_id = assignedReporterId;
   }
 
-  const { error } = await supabase
-    .from("matches")
-    .update({
-      home_score: homeScore,
-      away_score: awayScore,
-      status,
-      minute,
-      penalty_home_score: penaltyHomeRaw ? Number(penaltyHomeRaw) : null,
-      penalty_away_score: penaltyAwayRaw ? Number(penaltyAwayRaw) : null,
-      assigned_reporter_id: assignedReporterId,
-    })
-    .eq("id", matchId);
+  const { error } = await supabase.from("matches").update(payload).eq("id", matchId);
 
   if (error) console.error("Erreur mise à jour match:", error.message);
 
@@ -130,7 +148,7 @@ export async function updateMatch(matchId: string, formData: FormData) {
     action: "Mise à jour de match",
     entityType: "match",
     entityId: matchId,
-    details: { homeScore, awayScore, status, minute, assignedReporterId },
+    details: { homeScore, awayScore, status, minute },
   });
 
   revalidatePath("/admin/matchs");
