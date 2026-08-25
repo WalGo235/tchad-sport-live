@@ -2,6 +2,7 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
   super_admin: ["*"],
   journaliste: ["/admin/articles"],
   arbitre: ["/admin/matchs"],
+  reporter: ["/admin/mes-matchs"],
 };
 
 export const ALWAYS_ALLOWED = ["/admin/login", "/admin/logout", "/admin"];
