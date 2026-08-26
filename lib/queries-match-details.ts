@@ -41,13 +41,16 @@ export interface MatchEventData {
   minute: string | null;
   teamId: string;
   playerName: string | null;
+  substitutedPlayerName: string | null;
 }
 
 export async function getMatchEvents(matchId: string): Promise<MatchEventData[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("match_events")
-    .select("id, event_type, minute, team_id, player:players(name)")
+    .select(
+      "id, event_type, minute, team_id, player:players!player_id(name), substituted_player:players!substituted_player_id(name)"
+    )
     .eq("match_id", matchId)
     .order("minute");
   if (error || !data) return [];
@@ -57,6 +60,7 @@ export async function getMatchEvents(matchId: string): Promise<MatchEventData[]>
     minute: e.minute,
     teamId: e.team_id,
     playerName: (e.player as unknown as { name: string } | null)?.name ?? null,
+    substitutedPlayerName: (e.substituted_player as unknown as { name: string } | null)?.name ?? null,
   }));
 }
 
