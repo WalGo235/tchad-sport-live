@@ -32,6 +32,7 @@ const EVENT_ICON: Record<string, string> = {
   but: "⚽",
   carton_jaune: "🟨",
   carton_rouge: "🟥",
+  remplacement: "🔄",
 };
 
 const STAT_ROWS: { key: "possession" | "shots" | "shotsOnTarget" | "corners" | "fouls" | "offsides"; label: string }[] = [
@@ -147,7 +148,11 @@ export default async function MatchDetailPage({
               <div key={e.id} className="flex items-center gap-3 text-sm bg-surface border border-white/10 rounded-lg px-3 py-2">
                 <span className="text-muted font-mono w-10 shrink-0">{e.minute}</span>
                 <span>{EVENT_ICON[e.eventType] ?? "•"}</span>
-                <span className="flex-1">{e.playerName ?? "—"}</span>
+                <span className="flex-1">
+                  {e.eventType === "remplacement"
+                    ? `${e.playerName ?? "?"} ⇄ ${e.substitutedPlayerName ?? "?"}`
+                    : (e.playerName ?? "—")}
+                </span>
                 <span className="text-xs text-muted">
                   {e.teamId === match.homeTeamId ? match.homeTeam : match.awayTeam}
                 </span>
