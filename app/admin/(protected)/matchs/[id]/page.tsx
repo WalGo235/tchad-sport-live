@@ -17,6 +17,7 @@ const EVENT_LABEL: Record<string, string> = {
   but: "⚽ But",
   carton_jaune: "🟨 Carton jaune",
   carton_rouge: "🟥 Carton rouge",
+  remplacement: "🔄 Remplacement",
 };
 
 function LineupForm({
@@ -102,7 +103,9 @@ export default async function AdminMatchDetailPage({
       supabase.from("players").select("id, name").eq("team_id", match.away_team_id).order("name"),
       supabase
         .from("match_events")
-        .select("id, event_type, minute, team_id, player:players(name)")
+        .select(
+          "id, event_type, minute, team_id, player:players!player_id(name), substituted_player:players!substituted_player_id(name)"
+        )
         .eq("match_id", id)
         .order("minute"),
       supabase.from("match_lineups").select("team_id, player_id, is_starter, position").eq("match_id", id),
@@ -118,6 +121,11 @@ export default async function AdminMatchDetailPage({
 
   const homeLineup = (lineups ?? []).filter((l) => l.team_id === match.home_team_id);
   const awayLineup = (lineups ?? []).filter((l) => l.team_id === match.away_team_id);
+
+  const allPlayers = [
+    ...(homePlayers ?? []).map((p) => ({ ...p, team: homeTeam })),
+    ...(awayPlayers ?? []).map((p) => ({ ...p, team: awayTeam })),
+  ];
 
   return (
     <section className="mx-auto max-w-2xl px-4 py-10">
@@ -157,25 +165,31 @@ export default async function AdminMatchDetailPage({
       </div>
 
       <div className="bg-surface border border-white/10 rounded-lg p-4 mb-6">
-        <h2 className="font-semibold mb-4">Événements (buts, cartons)</h2>
+        <h2 className="font-semibold mb-4">Événements (buts, cartons, remplacements)</h2>
 
         {events && events.length > 0 && (
           <div className="space-y-2 mb-4">
-            {events.map((event) => (
-              <div key={event.id} className="flex items-center justify-between bg-night border border-white/10 rounded-lg px-3 py-2">
-                <span className="text-sm">
-                  {event.minute ?? ""} — {EVENT_LABEL[event.event_type ?? ""] ?? event.event_type}
-                  {(event.player as unknown as { name: string } | null)?.name
-                    ? ` — ${(event.player as unknown as { name: string }).name}`
-                    : ""}
-                </span>
-                <form action={deleteEvent.bind(null, id, event.id)}>
-                  <button type="submit" className="text-live text-xs hover:underline">
-                    Supprimer
-                  </button>
-                </form>
-              </div>
-            ))}
+            {events.map((event) => {
+              const playerName = (event.player as unknown as { name: string } | null)?.name;
+              const subName = (event.substituted_player as unknown as { name: string } | null)?.name;
+              return (
+                <div key={event.id} className="flex items-center justify-between bg-night border border-white/10 rounded-lg px-3 py-2">
+                  <span className="text-sm">
+                    {event.minute ?? ""} — {EVENT_LABEL[event.event_type ?? ""] ?? event.event_type}
+                    {event.event_type === "remplacement"
+                      ? ` — ${playerName ?? "?"} remplace ${subName ?? "?"}`
+                      : playerName
+                        ? ` — ${playerName}`
+                        : ""}
+                  </span>
+                  <form action={deleteEvent.bind(null, id, event.id)}>
+                    <button type="submit" className="text-live text-xs hover:underline">
+                      Supprimer
+                    </button>
+                  </form>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -185,28 +199,12 @@ export default async function AdminMatchDetailPage({
             <option value={match.home_team_id}>{homeTeam}</option>
             <option value={match.away_team_id}>{awayTeam}</option>
           </select>
-          <select name="playerId" className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand">
-            <option value="">— Joueur (optionnel) —</option>
-            <optgroup label={homeTeam}>
-              {homePlayers?.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label={awayTeam}>
-              {awayPlayers?.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </optgroup>
-          </select>
           <div className="flex gap-3">
             <select name="eventType" required className="flex-1 bg-night border border-white/10 rounded-lg px-3 py-2 text-sand">
               <option value="but">⚽ But</option>
               <option value="carton_jaune">🟨 Carton jaune</option>
               <option value="carton_rouge">🟥 Carton rouge</option>
+              <option value="remplacement">🔄 Remplacement</option>
             </select>
             <input
               type="text"
@@ -215,6 +213,40 @@ export default async function AdminMatchDetailPage({
               required
               className="w-24 bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted"
             />
+          </div>
+          <div>
+            <label className="text-xs text-muted block mb-1">Joueur (buteur, sanctionné, ou entrant si remplacement)</label>
+            <select name="playerId" className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand">
+              <option value="">— Joueur —</option>
+              <optgroup label={homeTeam}>
+                {homePlayers?.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label={awayTeam}>
+                {awayPlayers?.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-muted block mb-1">Joueur sortant (uniquement pour un remplacement)</label>
+            <select
+              name="substitutedPlayerId"
+              className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand"
+            >
+              <option value="">— Aucun —</option>
+              {allPlayers.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} ({p.team})
+                </option>
+              ))}
+            </select>
           </div>
           <button
             type="submit"
