@@ -1,6 +1,6 @@
 "use client";
 
-import MatchCard from "./MatchCard";
+import MatchScheduleCard from "./MatchScheduleCard";
 import AnimatedLogo from "./AnimatedLogo";
 import { useLiveMatches } from "@/lib/useLiveMatches";
 import type { MatchCardData } from "./MatchCard";
@@ -17,7 +17,7 @@ export default function HomeLiveSection({ initialMatches }: { initialMatches: Ma
           <h1 className="font-display text-4xl sm:text-5xl tracking-wide mb-2">MATCH À LA UNE</h1>
           <p className="text-muted mb-6">Le direct à ne pas manquer</p>
           <div className="max-w-sm">
-            <MatchCard match={featured} />
+            <MatchScheduleCard match={featured} />
           </div>
         </section>
       )}
