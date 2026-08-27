@@ -105,7 +105,7 @@ export default async function MatchDetailPage({
               likeInfo.likedByMe ? "bg-gold text-night border-gold" : "border-white/10 text-muted hover:border-gold/50"
             }`}
           >
-            👍 {likeInfo.count}
+            ❤️ {likeInfo.count}
           </button>
         </form>
         <WhatsAppShareButton
