@@ -33,10 +33,17 @@ function numberOrNull(formData: FormData, key: string) {
   return value ? Number(value) : null;
 }
 
+async function getRole(supabase: Awaited<ReturnType<typeof createClient>>): Promise<string> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return "";
+  const { data: adminRow } = await supabase.from("admin_users").select("role").eq("user_id", user.id).single();
+  return adminRow?.role ?? "";
+}
+
 export async function upsertClub(clubId: string | null, formData: FormData) {
   const supabase = await createClient();
-
-  console.log("DEBUG clubId reçu par l'action:", clubId);
 
   const newLogoUrl = await uploadFile(supabase, formData.get("logoFile") as File | null, "clubs");
   const newStadiumPhotoUrl = await uploadFile(supabase, formData.get("stadiumPhotoFile") as File | null, "stades");
@@ -87,18 +94,15 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
   if (newRegistrationUrl) payload.registration_doc_url = newRegistrationUrl;
 
   let finalId = clubId;
+  const role = await getRole(supabase);
 
   if (clubId) {
-    const { error: updateError, status, count } = await supabase
-      .from("teams")
-      .update(payload)
-      .eq("id", clubId)
-      .select();
-    console.log("DEBUG update:", { updateError, status, count, clubId });
-
-    const { data: recheck } = await supabase.from("teams").select("id, name, logo_url").eq("id", clubId).single();
-    console.log("DEBUG relecture immédiate après update:", recheck);
+    // Modification d'une fiche existante : immédiate, quel que soit le rôle
+    const { error: updateError } = await supabase.from("teams").update(payload).eq("id", clubId);
+    if (updateError) console.error("Erreur mise à jour club:", updateError.message);
   } else {
+    // Création : en attente si gestionnaire, approuvée d'emblée si super_admin
+    payload.approval_status = role === "super_admin" ? "approved" : "pending";
     const { data, error: insertError } = await supabase.from("teams").insert(payload).select("id").single();
     if (insertError) console.error("Erreur création club:", insertError.message);
     finalId = data?.id ?? null;
@@ -112,22 +116,31 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
   });
 
   revalidatePath("/admin/clubs");
+  revalidatePath("/admin/validations");
   revalidatePath("/competitions");
+  revalidatePath("/clubs");
 }
 
 export async function deleteClub(clubId: string) {
   const supabase = await createClient();
+  const role = await getRole(supabase);
 
   const { data: club } = await supabase.from("teams").select("name").eq("id", clubId).single();
 
-  await supabase.from("teams").delete().eq("id", clubId);
+  if (role === "super_admin") {
+    await supabase.from("teams").delete().eq("id", clubId);
+  } else {
+    await supabase.from("teams").update({ approval_status: "pending_deletion" }).eq("id", clubId);
+  }
 
   await logActivity({
-    action: "Suppression de club",
+    action: role === "super_admin" ? "Suppression de club" : "Demande de suppression de club",
     entityType: "club",
     entityId: clubId,
     details: { name: club?.name },
   });
 
   revalidatePath("/admin/clubs");
+  revalidatePath("/admin/validations");
+  revalidatePath("/clubs");
 }
