@@ -360,6 +360,7 @@ export interface ClubDetail {
     jerseyNumber: number | null;
     photoUrl: string | null;
     nationality: string | null;
+    goals: number;
   }[];
 }
 
@@ -384,6 +385,18 @@ export async function getClubDetail(id: string): Promise<ClubDetail | null> {
     .eq("approval_status", "approved")
     .order("jersey_number", { ascending: true, nullsFirst: false });
 
+  const { data: goalEvents } = await supabase
+    .from("match_events")
+    .select("player_id")
+    .eq("team_id", id)
+    .eq("event_type", "but");
+
+  const goalsByPlayer = new Map<string, number>();
+  (goalEvents ?? []).forEach((e) => {
+    if (!e.player_id) return;
+    goalsByPlayer.set(e.player_id, (goalsByPlayer.get(e.player_id) ?? 0) + 1);
+  });
+
   return {
     id: club.id,
     name: club.name,
@@ -401,6 +414,7 @@ export async function getClubDetail(id: string): Promise<ClubDetail | null> {
       jerseyNumber: p.jersey_number,
       photoUrl: p.photo_url,
       nationality: p.nationality,
+      goals: goalsByPlayer.get(p.id) ?? 0,
     })),
   };
 }
