@@ -3,6 +3,9 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
   journaliste: ["/admin/articles"],
   arbitre: ["/admin/matchs"],
   reporter: ["/admin/mes-matchs"],
+  gestionnaire_clubs: ["/admin/clubs"],
+  gestionnaire_joueurs: ["/admin/joueurs"],
+  gestionnaire_competitions: ["/admin/competitions"],
 };
 
 export const ALWAYS_ALLOWED = ["/admin/login", "/admin/logout", "/admin"];
