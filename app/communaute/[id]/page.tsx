@@ -40,7 +40,7 @@ export default async function TopicDetailPage({
             topic.likedByMe ? "bg-gold text-night border-gold" : "border-white/10 text-muted hover:border-gold/50"
           }`}
         >
-          👍 {topic.likeCount}
+          ❤️ {topic.likeCount}
         </button>
       </form>
 
@@ -63,7 +63,7 @@ export default async function TopicDetailPage({
                     reply.likedByMe ? "bg-gold text-night border-gold" : "border-white/10 text-muted hover:border-gold/50"
                   }`}
                 >
-                  👍 {reply.likeCount}
+                  ❤️ {reply.likeCount}
                 </button>
               </form>
             </div>
@@ -100,4 +100,4 @@ export default async function TopicDetailPage({
       )}
     </section>
   );
-            }
+}
