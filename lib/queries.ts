@@ -214,6 +214,7 @@ export async function getCompetitions(): Promise<CompetitionListItem[]> {
   const { data, error } = await supabase
     .from("competitions")
     .select("id, name, season")
+    .eq("approval_status", "approved")
     .order("name");
 
   if (error || !data) return [];
@@ -235,6 +236,7 @@ export async function getCompetitionDetail(id: string): Promise<CompetitionDetai
     .from("competitions")
     .select("id, name, season")
     .eq("id", id)
+    .eq("approval_status", "approved")
     .single();
 
   if (compError || !competition) return null;
@@ -296,6 +298,7 @@ export async function getClubDetail(id: string): Promise<ClubDetail | null> {
     .from("teams")
     .select("id, name, city, logo_url")
     .eq("id", id)
+    .eq("approval_status", "approved")
     .single();
 
   if (error || !club) return null;
@@ -304,6 +307,7 @@ export async function getClubDetail(id: string): Promise<ClubDetail | null> {
     .from("players")
     .select("id, name, position, jersey_number")
     .eq("team_id", id)
+    .eq("approval_status", "approved")
     .order("jersey_number", { ascending: true, nullsFirst: false });
 
   return {
@@ -336,6 +340,7 @@ export async function getPlayerDetail(id: string): Promise<PlayerDetail | null> 
     .from("players")
     .select("id, name, position, jersey_number, photo_url, team:teams(id, name)")
     .eq("id", id)
+    .eq("approval_status", "approved")
     .single();
 
   if (error || !data) return null;
@@ -363,6 +368,7 @@ export async function getAllClubs(): Promise<ClubListItem[]> {
   const { data, error } = await supabase
     .from("teams")
     .select("id, name, city, logo_url, current_division")
+    .eq("approval_status", "approved")
     .order("name");
   if (error || !data) return [];
   return data.map((t) => ({
@@ -388,6 +394,7 @@ export async function getAllPlayers(): Promise<PlayerListItem[]> {
   const { data, error } = await supabase
     .from("players")
     .select("id, name, position, jersey_number, photo_url, team:teams(name)")
+    .eq("approval_status", "approved")
     .order("name");
   if (error || !data) return [];
   return data.map((p) => ({
