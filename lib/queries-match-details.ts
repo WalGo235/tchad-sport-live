@@ -143,3 +143,29 @@ export async function getHeadToHead(
     matchDate: row.match_date,
   }));
 }
+
+export interface PlayerStatRow {
+  playerId: string;
+  playerName: string;
+  teamName: string;
+  count: number;
+}
+
+export interface CompetitionPlayerStats {
+  topScorers: PlayerStatRow[];
+  topAssists: PlayerStatRow[];
+  mostCards: PlayerStatRow[];
+}
+
+export async function getCompetitionPlayerStats(competitionId: string): Promise<CompetitionPlayerStats> {
+  const supabase = await createClient();
+
+  const { data: matchesData } = await supabase.from("matches").select("id").eq("competition_id", competitionId);
+
+  const matchIds = (matchesData ?? []).map((m) => m.id);
+  if (matchIds.length === 0) return { topScorers: [], topAssists: [], mostCards: [] };
+
+  const { data: events } = await supabase
+    .from("match_events")
+    .select(
+      "event_type, player:players!player_id(id, name, team:teams(name)), assist_player:players!assist_player
