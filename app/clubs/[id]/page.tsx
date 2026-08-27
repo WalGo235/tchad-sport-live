@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getClubDetail, getMatchesByTeam } from "@/lib/queries";
+import { getLikeInfo } from "@/lib/queries-social";
+import { toggleLike } from "@/lib/actions-social";
+import { createClient } from "@/lib/supabase/server";
 import MatchScheduleCard from "@/components/MatchScheduleCard";
 
 export const revalidate = 300;
@@ -28,7 +31,17 @@ export default async function ClubDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [club, matches] = await Promise.all([getClubDetail(id), getMatchesByTeam(id)]);
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [club, matches, likeInfo] = await Promise.all([
+    getClubDetail(id),
+    getMatchesByTeam(id),
+    getLikeInfo("club", id, user?.id ?? null),
+  ]);
 
   if (!club) notFound();
 
@@ -51,6 +64,19 @@ export default async function ClubDetailPage({
         )}
         <h1 className="font-display text-3xl tracking-wide">{club.name}</h1>
         {club.city && <p className="text-muted mt-1">{club.city}</p>}
+      </div>
+
+      <div className="flex justify-center mb-8">
+        <form action={toggleLike.bind(null, "club", id, `/clubs/${id}`)}>
+          <button
+            type="submit"
+            className={`text-sm px-4 py-2 rounded-lg border transition-colors ${
+              likeInfo.likedByMe ? "bg-gold text-night border-gold" : "border-white/10 text-muted hover:border-gold/50"
+            }`}
+          >
+            {likeInfo.likedByMe ? "★ Suivi" : "☆ Suivre"} ({likeInfo.count})
+          </button>
+        </form>
       </div>
 
       {facts.length > 0 && (
