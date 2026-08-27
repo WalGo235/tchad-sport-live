@@ -14,7 +14,9 @@ function numberOrNull(formData: FormData, key: string) {
   return value ? Number(value) : null;
 }
 
-function buildMatchPayload(formData: FormData): Record<string, unknown> {
+export async function createMatch(formData: FormData) {
+  const supabase = await createClient();
+
   const payload: Record<string, unknown> = {
     competition_id: textOrNull(formData, "competitionId"),
     home_team_id: textOrNull(formData, "homeTeamId"),
@@ -28,22 +30,10 @@ function buildMatchPayload(formData: FormData): Record<string, unknown> {
     phase_id: textOrNull(formData, "phaseId"),
     penalty_home_score: numberOrNull(formData, "penaltyHomeScore"),
     penalty_away_score: numberOrNull(formData, "penaltyAwayScore"),
-    // ⚠️ assigned_reporter_id volontairement absent : l'assignation reporter a sa
-    // propre logique (conflit horaire < 3h) — probablement une action à part,
-    // non listée dans l'erreur de build, donc non touchée par ce bug.
   };
 
-  // half_duration est NOT NULL en base (défaut 45) : on ne l'inclut que si fourni,
-  // pour ne jamais écraser avec null.
   const halfDuration = numberOrNull(formData, "halfDuration");
   if (halfDuration) payload.half_duration = halfDuration;
-
-  return payload;
-}
-
-export async function createMatch(formData: FormData) {
-  const supabase = await createClient();
-  const payload = buildMatchPayload(formData);
 
   const { data, error } = await supabase.from("matches").insert(payload).select("id").single();
   if (error) console.error("Erreur création match:", error.message);
@@ -59,12 +49,35 @@ export async function createMatch(formData: FormData) {
   revalidatePath("/matchs");
 }
 
-// ⚠️ À vérifier : j'ai supposé updateMatch(matchId, formData) dans cet ordre,
-// par cohérence avec deleteMatch. Je n'ai pas vu page.tsx pour confirmer
-// exactement comment ces fonctions sont appelées.
+// Mise à jour PARTIELLE : ne touche que les champs réellement présents dans le
+// formulaire soumis (formData.has(...)). C'est le correctif du bug trouvé :
+// l'ancienne version envoyait TOUJOURS tous les champs, donc un formulaire qui
+// ne renvoie pas matchDate (ex: modif rapide du score/statut) écrasait
+// match_date à null -> violation de contrainte NOT NULL -> toute la mise à
+// jour rejetée par Postgres (confirmé via les logs runtime Vercel).
 export async function updateMatch(matchId: string, formData: FormData) {
   const supabase = await createClient();
-  const payload = buildMatchPayload(formData);
+
+  const payload: Record<string, unknown> = {};
+  if (formData.has("competitionId")) payload.competition_id = textOrNull(formData, "competitionId");
+  if (formData.has("homeTeamId")) payload.home_team_id = textOrNull(formData, "homeTeamId");
+  if (formData.has("awayTeamId")) payload.away_team_id = textOrNull(formData, "awayTeamId");
+  if (formData.has("homeScore")) payload.home_score = numberOrNull(formData, "homeScore") ?? 0;
+  if (formData.has("awayScore")) payload.away_score = numberOrNull(formData, "awayScore") ?? 0;
+  if (formData.has("status")) payload.status = textOrNull(formData, "status") ?? "scheduled";
+  if (formData.has("matchDate")) {
+    const matchDate = formData.get("matchDate") as string;
+    if (matchDate) payload.match_date = matchDate; // jamais null : colonne NOT NULL
+  }
+  if (formData.has("venue")) payload.venue = textOrNull(formData, "venue");
+  if (formData.has("minute")) payload.minute = textOrNull(formData, "minute");
+  if (formData.has("phaseId")) payload.phase_id = textOrNull(formData, "phaseId");
+  if (formData.has("penaltyHomeScore")) payload.penalty_home_score = numberOrNull(formData, "penaltyHomeScore");
+  if (formData.has("penaltyAwayScore")) payload.penalty_away_score = numberOrNull(formData, "penaltyAwayScore");
+  if (formData.has("halfDuration")) {
+    const halfDuration = numberOrNull(formData, "halfDuration");
+    if (halfDuration) payload.half_duration = halfDuration;
+  }
 
   const { error } = await supabase.from("matches").update(payload).eq("id", matchId);
   if (error) console.error("Erreur mise à jour match:", error.message);
@@ -73,7 +86,7 @@ export async function updateMatch(matchId: string, formData: FormData) {
     action: "Modification de match",
     entityType: "match",
     entityId: matchId,
-    details: { home_team_id: payload.home_team_id, away_team_id: payload.away_team_id },
+    details: payload,
   });
 
   revalidatePath("/admin/matchs");
