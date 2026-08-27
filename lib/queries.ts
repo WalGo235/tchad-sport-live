@@ -57,6 +57,20 @@ export async function getMatches(): Promise<MatchCardData[]> {
   return (data as unknown as MatchRow[]).map(toMatchCard);
 }
 
+export async function getMatchesByCompetition(competitionId: string): Promise<MatchCardData[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("matches")
+    .select(
+      "id, home_score, away_score, status, match_date, minute, venue, half_duration, competition:competitions(name), home_team:teams!home_team_id(name, logo_url), away_team:teams!away_team_id(name, logo_url)"
+    )
+    .eq("competition_id", competitionId)
+    .order("match_date", { ascending: false });
+
+  if (error || !data) return [];
+  return (data as unknown as MatchRow[]).map(toMatchCard);
+}
+
 export interface MatchDetail {
   id: string;
   competition: string;
@@ -225,12 +239,23 @@ export async function getCompetitions(): Promise<CompetitionListItem[]> {
   return data;
 }
 
+export interface CompetitionPhase {
+  id: string;
+  name: string;
+  phaseOrder: number;
+  phaseType: string | null;
+}
+
 export interface CompetitionDetail {
   id: string;
   name: string;
   season: string | null;
+  format: string;
+  isOfficial: boolean;
+  category: string | null;
   standings: StandingRow[];
   clubs: { id: string; name: string; city: string | null }[];
+  phases: CompetitionPhase[];
 }
 
 export async function getCompetitionDetail(id: string): Promise<CompetitionDetail | null> {
@@ -238,7 +263,7 @@ export async function getCompetitionDetail(id: string): Promise<CompetitionDetai
 
   const { data: competition, error: compError } = await supabase
     .from("competitions")
-    .select("id, name, season")
+    .select("id, name, season, format, is_official, category")
     .eq("id", id)
     .eq("approval_status", "approved")
     .single();
@@ -278,12 +303,29 @@ export async function getCompetitionDetail(id: string): Promise<CompetitionDetai
       city: row.team!.city,
     }));
 
+  const { data: phasesData } = await supabase
+    .from("competition_phases")
+    .select("id, name, phase_order, phase_type")
+    .eq("competition_id", id)
+    .order("phase_order");
+
+  const phases: CompetitionPhase[] = (phasesData ?? []).map((p) => ({
+    id: p.id,
+    name: p.name,
+    phaseOrder: p.phase_order ?? 0,
+    phaseType: p.phase_type,
+  }));
+
   return {
     id: competition.id,
     name: competition.name,
     season: competition.season,
+    format: competition.format ?? "championnat",
+    isOfficial: competition.is_official ?? true,
+    category: competition.category,
     standings,
     clubs,
+    phases,
   };
 }
 
