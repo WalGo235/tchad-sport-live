@@ -168,4 +168,49 @@ export async function getCompetitionPlayerStats(competitionId: string): Promise<
   const { data: events } = await supabase
     .from("match_events")
     .select(
-      "event_type, player:players!player_id(id, name, team:teams(name)), assist_player:players!assist_player
+      "event_type, player:players!player_id(id, name, team:teams(name)), assist_player:players!assist_player_id(id, name, team:teams(name))"
+    )
+    .in("match_id", matchIds);
+
+  type PlayerRef = { id: string; name: string; team: { name: string } | null } | null;
+
+  const scorerCounts = new Map<string, PlayerStatRow>();
+  const assistCounts = new Map<string, PlayerStatRow>();
+  const cardCounts = new Map<string, PlayerStatRow>();
+
+  const bump = (map: Map<string, PlayerStatRow>, player: PlayerRef) => {
+    if (!player) return;
+    const entry = map.get(player.id) ?? {
+      playerId: player.id,
+      playerName: player.name,
+      teamName: player.team?.name ?? "",
+      count: 0,
+    };
+    entry.count += 1;
+    map.set(player.id, entry);
+  };
+
+  for (const e of events ?? []) {
+    const player = e.player as unknown as PlayerRef;
+    const assistPlayer = e.assist_player as unknown as PlayerRef;
+
+    if (e.event_type === "but") {
+      bump(scorerCounts, player);
+      bump(assistCounts, assistPlayer);
+    }
+    if (e.event_type === "carton_jaune" || e.event_type === "carton_rouge") {
+      bump(cardCounts, player);
+    }
+  }
+
+  const sortAndLimit = (map: Map<string, PlayerStatRow>) =>
+    Array.from(map.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+  return {
+    topScorers: sortAndLimit(scorerCounts),
+    topAssists: sortAndLimit(assistCounts),
+    mostCards: sortAndLimit(cardCounts),
+  };
+}
