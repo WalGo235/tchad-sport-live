@@ -49,6 +49,7 @@ export async function addEvent(matchId: string, formData: FormData) {
   const teamId = formData.get("teamId") as string;
   const playerId = (formData.get("playerId") as string) || null;
   const substitutedPlayerId = (formData.get("substitutedPlayerId") as string) || null;
+  const assistPlayerId = (formData.get("assistPlayerId") as string) || null;
   const eventType = formData.get("eventType") as string;
   const minute = (formData.get("minute") as string) || null;
 
@@ -57,6 +58,7 @@ export async function addEvent(matchId: string, formData: FormData) {
     team_id: teamId,
     player_id: playerId,
     substituted_player_id: eventType === "remplacement" ? substitutedPlayerId : null,
+    assist_player_id: eventType === "but" ? assistPlayerId : null,
     event_type: eventType,
     minute,
   });
