@@ -4,169 +4,142 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "@/lib/logActivity";
 
-const CONFLICT_WINDOW_HOURS = 3;
-
-async function checkReporterConflict(
+async function uploadFile(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  reporterId: string,
-  matchDate: string,
-  excludeMatchId: string | null
-): Promise<string | null> {
-  const kickoff = new Date(matchDate).getTime();
-  const windowMs = CONFLICT_WINDOW_HOURS * 60 * 60 * 1000;
+  file: File | null,
+  folder: string
+) {
+  if (!file || file.size === 0) return null;
 
-  let query = supabase
-    .from("matches")
-    .select("id, match_date, home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)")
-    .eq("assigned_reporter_id", reporterId);
+  const fileExt = file.name.split(".").pop() || "jpg";
+  const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
 
-  if (excludeMatchId) {
-    query = query.neq("id", excludeMatchId);
+  const { error: uploadError } = await supabase.storage.from("photos").upload(fileName, file);
+  if (uploadError) {
+    console.error("Erreur upload storage:", uploadError.message);
+    return null;
   }
 
-  const { data: existing } = await query;
-
-  for (const m of existing ?? []) {
-    const otherKickoff = new Date(m.match_date).getTime();
-    if (Math.abs(otherKickoff - kickoff) < windowMs) {
-      const home = (m.home_team as unknown as { name: string } | null)?.name ?? "?";
-      const away = (m.away_team as unknown as { name: string } | null)?.name ?? "?";
-      return `Ce reporter est déjà assigné à ${home} vs ${away} à moins de ${CONFLICT_WINDOW_HOURS}h de ce match.`;
-    }
-  }
-
-  return null;
+  return `https://iqsrxyuazktyiyhpbzie.supabase.co/storage/v1/object/public/photos/${fileName}`;
 }
 
-async function isSuperAdmin(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
+function textOrNull(formData: FormData, key: string) {
+  const value = formData.get(key) as string;
+  return value ? value : null;
+}
+
+function numberOrNull(formData: FormData, key: string) {
+  const value = formData.get(key) as string;
+  return value ? Number(value) : null;
+}
+
+async function getRole(supabase: Awaited<ReturnType<typeof createClient>>): Promise<string> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return false;
-
+  if (!user) return "";
   const { data: adminRow } = await supabase.from("admin_users").select("role").eq("user_id", user.id).single();
-  return adminRow?.role === "super_admin";
+  return adminRow?.role ?? "";
 }
 
-export async function createMatch(formData: FormData) {
+export async function upsertClub(clubId: string | null, formData: FormData) {
   const supabase = await createClient();
 
-  const competitionId = formData.get("competitionId") as string;
-  const homeTeamId = formData.get("homeTeamId") as string;
-  const awayTeamId = formData.get("awayTeamId") as string;
-  const matchDate = formData.get("matchDate") as string;
-  const venue = (formData.get("venue") as string) || null;
-  const status = (formData.get("status") as string) || "scheduled";
-  const halfDuration = Number(formData.get("halfDuration")) || 45;
+  const newLogoUrl = await uploadFile(supabase, formData.get("logoFile") as File | null, "clubs");
+  const newStadiumPhotoUrl = await uploadFile(supabase, formData.get("stadiumPhotoFile") as File | null, "stades");
+  const newTeamPhotoUrl = await uploadFile(supabase, formData.get("teamPhotoFile") as File | null, "equipes");
+  const newRegistrationUrl = await uploadFile(supabase, formData.get("registrationFile") as File | null, "documents");
 
-  let assignedReporterId = (formData.get("assignedReporterId") as string) || null;
-
-  if (assignedReporterId) {
-    if (!(await isSuperAdmin(supabase))) {
-      console.error("Tentative d'assignation de reporter refusée : rôle insuffisant");
-      assignedReporterId = null;
-    } else {
-      const conflict = await checkReporterConflict(supabase, assignedReporterId, matchDate, null);
-      if (conflict) {
-        console.error("Conflit reporter:", conflict);
-        return;
-      }
-    }
-  }
-
-  const { data, error } = await supabase
-    .from("matches")
-    .insert({
-      competition_id: competitionId,
-      home_team_id: homeTeamId,
-      away_team_id: awayTeamId,
-      match_date: matchDate,
-      venue,
-      status,
-      half_duration: halfDuration,
-      assigned_reporter_id: assignedReporterId,
-      home_score: 0,
-      away_score: 0,
-    })
-    .select("id")
-    .single();
-
-  if (error) console.error("Erreur création match:", error.message);
-
-  await logActivity({
-    action: "Ajout de match",
-    entityType: "match",
-    entityId: data?.id ?? undefined,
-    details: { competitionId, homeTeamId, awayTeamId, matchDate, status, halfDuration, assignedReporterId },
-  });
-
-  revalidatePath("/admin/matchs");
-  revalidatePath("/");
-  revalidatePath("/matchs");
-}
-
-export async function updateMatch(matchId: string, formData: FormData) {
-  const supabase = await createClient();
-
-  const homeScore = Number(formData.get("homeScore"));
-  const awayScore = Number(formData.get("awayScore"));
-  const status = formData.get("status") as string;
-  const minute = (formData.get("minute") as string) || null;
-  const penaltyHomeRaw = formData.get("penaltyHomeScore") as string;
-  const penaltyAwayRaw = formData.get("penaltyAwayScore") as string;
-
-  const superAdmin = await isSuperAdmin(supabase);
+  const name = formData.get("name") as string;
   const payload: Record<string, unknown> = {
-    home_score: homeScore,
-    away_score: awayScore,
-    status,
-    minute,
-    penalty_home_score: penaltyHomeRaw ? Number(penaltyHomeRaw) : null,
-    penalty_away_score: penaltyAwayRaw ? Number(penaltyAwayRaw) : null,
+    name,
+    description: textOrNull(formData, "description"),
+    abbreviation: textOrNull(formData, "abbreviation"),
+    founded_date: textOrNull(formData, "foundedDate"),
+    city: textOrNull(formData, "city"),
+    region: textOrNull(formData, "region"),
+    country: textOrNull(formData, "country"),
+    colors: textOrNull(formData, "colors"),
+    motto: textOrNull(formData, "motto"),
+    postal_address: textOrNull(formData, "postalAddress"),
+    phone: textOrNull(formData, "phone"),
+    email: textOrNull(formData, "email"),
+    website: textOrNull(formData, "website"),
+    social_links: textOrNull(formData, "socialLinks"),
+    president: textOrNull(formData, "president"),
+    secretary_general: textOrNull(formData, "secretaryGeneral"),
+    treasurer: textOrNull(formData, "treasurer"),
+    sports_director: textOrNull(formData, "sportsDirector"),
+    head_coach: textOrNull(formData, "headCoach"),
+    assistant_coaches: textOrNull(formData, "assistantCoaches"),
+    medical_staff: textOrNull(formData, "medicalStaff"),
+    stadium_name: textOrNull(formData, "stadiumName"),
+    stadium_capacity: numberOrNull(formData, "stadiumCapacity"),
+    stadium_address: textOrNull(formData, "stadiumAddress"),
+    training_center: textOrNull(formData, "trainingCenter"),
+    current_division: textOrNull(formData, "currentDivision"),
+    honors: textOrNull(formData, "honors"),
+    best_historical_ranking: textOrNull(formData, "bestHistoricalRanking"),
+    international_competitions: textOrNull(formData, "internationalCompetitions"),
+    licensed_members: numberOrNull(formData, "licensedMembers"),
+    sports_sections: textOrNull(formData, "sportsSections"),
+    season_goal: textOrNull(formData, "seasonGoal"),
+    development_strategy: textOrNull(formData, "developmentStrategy"),
+    community_engagement: textOrNull(formData, "communityEngagement"),
+    sponsors: textOrNull(formData, "sponsors"),
   };
 
-  if (superAdmin) {
-    const assignedReporterId = (formData.get("assignedReporterId") as string) || null;
-    if (assignedReporterId) {
-      const { data: match } = await supabase.from("matches").select("match_date").eq("id", matchId).single();
-      if (match) {
-        const conflict = await checkReporterConflict(supabase, assignedReporterId, match.match_date, matchId);
-        if (conflict) {
-          console.error("Conflit reporter:", conflict);
-          return;
-        }
-      }
-    }
-    payload.assigned_reporter_id = assignedReporterId;
+  if (newLogoUrl) payload.logo_url = newLogoUrl;
+  if (newStadiumPhotoUrl) payload.stadium_photo_url = newStadiumPhotoUrl;
+  if (newTeamPhotoUrl) payload.team_photo_url = newTeamPhotoUrl;
+  if (newRegistrationUrl) payload.registration_doc_url = newRegistrationUrl;
+
+  let finalId = clubId;
+  const role = await getRole(supabase);
+
+  if (clubId) {
+    const { error: updateError } = await supabase.from("teams").update(payload).eq("id", clubId);
+    if (updateError) console.error("Erreur mise à jour club:", updateError.message);
+  } else {
+    payload.approval_status = role === "super_admin" ? "approved" : "pending";
+    const { data, error: insertError } = await supabase.from("teams").insert(payload).select("id").single();
+    if (insertError) console.error("Erreur création club:", insertError.message);
+    finalId = data?.id ?? null;
   }
 
-  const { error } = await supabase.from("matches").update(payload).eq("id", matchId);
-
-  if (error) console.error("Erreur mise à jour match:", error.message);
-
   await logActivity({
-    action: "Mise à jour de match",
-    entityType: "match",
-    entityId: matchId,
-    details: { homeScore, awayScore, status, minute },
+    action: clubId ? "Modification de club" : "Ajout de club",
+    entityType: "club",
+    entityId: finalId ?? undefined,
+    details: { name },
   });
 
-  revalidatePath("/admin/matchs");
-  revalidatePath("/");
-  revalidatePath("/matchs");
+  revalidatePath("/admin/clubs");
+  revalidatePath("/admin/validations");
+  revalidatePath("/competitions");
+  revalidatePath("/clubs");
 }
 
-export async function deleteMatch(matchId: string) {
+export async function deleteClub(clubId: string) {
   const supabase = await createClient();
+  const role = await getRole(supabase);
 
-  await supabase.from("matches").delete().eq("id", matchId);
+  const { data: club } = await supabase.from("teams").select("name").eq("id", clubId).single();
+
+  if (role === "super_admin") {
+    await supabase.from("teams").delete().eq("id", clubId);
+  } else {
+    await supabase.from("teams").update({ approval_status: "pending_deletion" }).eq("id", clubId);
+  }
 
   await logActivity({
-    action: "Suppression de match",
-    entityType: "match",
-    entityId: matchId,
-    details: {},
+    action: role === "super_admin" ? "Suppression de club" : "Demande de suppression de club",
+    entityType: "club",
+    entityId: clubId,
+    details: { name: club?.name },
   });
 
-  revalidatePath("/admin/matchs");
+  revalidatePath("/admin/clubs");
+  revalidatePath("/admin/validations");
+  revalidatePath("/clubs");
 }
