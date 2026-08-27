@@ -70,6 +70,8 @@ export interface MatchDetail {
   minute?: string;
   matchDate: string;
   venue?: string;
+  homeLogoUrl?: string | null;
+  awayLogoUrl?: string | null;
 }
 
 export async function getMatchById(id: string): Promise<MatchDetail | null> {
@@ -77,7 +79,7 @@ export async function getMatchById(id: string): Promise<MatchDetail | null> {
   const { data, error } = await supabase
     .from("matches")
     .select(
-      "id, home_score, away_score, status, match_date, minute, venue, half_duration, home_team_id, away_team_id, competition:competitions(name), home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)"
+      "id, home_score, away_score, status, match_date, minute, venue, half_duration, home_team_id, away_team_id, competition:competitions(name), home_team:teams!home_team_id(name, logo_url), away_team:teams!away_team_id(name, logo_url)"
     )
     .eq("id", id)
     .single();
@@ -100,6 +102,8 @@ export async function getMatchById(id: string): Promise<MatchDetail | null> {
     minute: computed.minute ?? row.minute ?? undefined,
     matchDate: row.match_date,
     venue: row.venue ?? undefined,
+    homeLogoUrl: row.home_team?.logo_url,
+    awayLogoUrl: row.away_team?.logo_url,
   };
 }
 
