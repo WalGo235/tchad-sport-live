@@ -53,6 +53,7 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
   const name = formData.get("name") as string;
   const payload: Record<string, unknown> = {
     name,
+    description: textOrNull(formData, "description"),
     abbreviation: textOrNull(formData, "abbreviation"),
     founded_date: textOrNull(formData, "foundedDate"),
     city: textOrNull(formData, "city"),
@@ -97,11 +98,9 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
   const role = await getRole(supabase);
 
   if (clubId) {
-    // Modification d'une fiche existante : immédiate, quel que soit le rôle
     const { error: updateError } = await supabase.from("teams").update(payload).eq("id", clubId);
     if (updateError) console.error("Erreur mise à jour club:", updateError.message);
   } else {
-    // Création : en attente si gestionnaire, approuvée d'emblée si super_admin
     payload.approval_status = role === "super_admin" ? "approved" : "pending";
     const { data, error: insertError } = await supabase.from("teams").insert(payload).select("id").single();
     if (insertError) console.error("Erreur création club:", insertError.message);
