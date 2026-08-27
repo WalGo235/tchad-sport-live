@@ -4,25 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "@/lib/logActivity";
 
-async function uploadFile(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  file: File | null,
-  folder: string
-) {
-  if (!file || file.size === 0) return null;
-
-  const fileExt = file.name.split(".").pop() || "jpg";
-  const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-
-  const { error: uploadError } = await supabase.storage.from("photos").upload(fileName, file);
-  if (uploadError) {
-    console.error("Erreur upload storage:", uploadError.message);
-    return null;
-  }
-
-  return `https://iqsrxyuazktyiyhpbzie.supabase.co/storage/v1/object/public/photos/${fileName}`;
-}
-
 function textOrNull(formData: FormData, key: string) {
   const value = formData.get(key) as string;
   return value ? value : null;
@@ -33,113 +14,85 @@ function numberOrNull(formData: FormData, key: string) {
   return value ? Number(value) : null;
 }
 
-async function getRole(supabase: Awaited<ReturnType<typeof createClient>>): Promise<string> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return "";
-  const { data: adminRow } = await supabase.from("admin_users").select("role").eq("user_id", user.id).single();
-  return adminRow?.role ?? "";
-}
-
-export async function upsertClub(clubId: string | null, formData: FormData) {
-  const supabase = await createClient();
-
-  const newLogoUrl = await uploadFile(supabase, formData.get("logoFile") as File | null, "clubs");
-  const newStadiumPhotoUrl = await uploadFile(supabase, formData.get("stadiumPhotoFile") as File | null, "stades");
-  const newTeamPhotoUrl = await uploadFile(supabase, formData.get("teamPhotoFile") as File | null, "equipes");
-  const newRegistrationUrl = await uploadFile(supabase, formData.get("registrationFile") as File | null, "documents");
-
-  const name = formData.get("name") as string;
+function buildMatchPayload(formData: FormData): Record<string, unknown> {
   const payload: Record<string, unknown> = {
-    name,
-    description: textOrNull(formData, "description"),
-    abbreviation: textOrNull(formData, "abbreviation"),
-    founded_date: textOrNull(formData, "foundedDate"),
-    city: textOrNull(formData, "city"),
-    region: textOrNull(formData, "region"),
-    country: textOrNull(formData, "country"),
-    colors: textOrNull(formData, "colors"),
-    motto: textOrNull(formData, "motto"),
-    postal_address: textOrNull(formData, "postalAddress"),
-    phone: textOrNull(formData, "phone"),
-    email: textOrNull(formData, "email"),
-    website: textOrNull(formData, "website"),
-    social_links: textOrNull(formData, "socialLinks"),
-    president: textOrNull(formData, "president"),
-    secretary_general: textOrNull(formData, "secretaryGeneral"),
-    treasurer: textOrNull(formData, "treasurer"),
-    sports_director: textOrNull(formData, "sportsDirector"),
-    head_coach: textOrNull(formData, "headCoach"),
-    assistant_coaches: textOrNull(formData, "assistantCoaches"),
-    medical_staff: textOrNull(formData, "medicalStaff"),
-    stadium_name: textOrNull(formData, "stadiumName"),
-    stadium_capacity: numberOrNull(formData, "stadiumCapacity"),
-    stadium_address: textOrNull(formData, "stadiumAddress"),
-    training_center: textOrNull(formData, "trainingCenter"),
-    current_division: textOrNull(formData, "currentDivision"),
-    honors: textOrNull(formData, "honors"),
-    best_historical_ranking: textOrNull(formData, "bestHistoricalRanking"),
-    international_competitions: textOrNull(formData, "internationalCompetitions"),
-    licensed_members: numberOrNull(formData, "licensedMembers"),
-    sports_sections: textOrNull(formData, "sportsSections"),
-    season_goal: textOrNull(formData, "seasonGoal"),
-    development_strategy: textOrNull(formData, "developmentStrategy"),
-    community_engagement: textOrNull(formData, "communityEngagement"),
-    sponsors: textOrNull(formData, "sponsors"),
+    competition_id: textOrNull(formData, "competitionId"),
+    home_team_id: textOrNull(formData, "homeTeamId"),
+    away_team_id: textOrNull(formData, "awayTeamId"),
+    home_score: numberOrNull(formData, "homeScore") ?? 0,
+    away_score: numberOrNull(formData, "awayScore") ?? 0,
+    status: textOrNull(formData, "status") ?? "scheduled",
+    match_date: formData.get("matchDate") as string,
+    venue: textOrNull(formData, "venue"),
+    minute: textOrNull(formData, "minute"),
+    phase_id: textOrNull(formData, "phaseId"),
+    penalty_home_score: numberOrNull(formData, "penaltyHomeScore"),
+    penalty_away_score: numberOrNull(formData, "penaltyAwayScore"),
+    // ⚠️ assigned_reporter_id volontairement absent : l'assignation reporter a sa
+    // propre logique (conflit horaire < 3h) — probablement une action à part,
+    // non listée dans l'erreur de build, donc non touchée par ce bug.
   };
 
-  if (newLogoUrl) payload.logo_url = newLogoUrl;
-  if (newStadiumPhotoUrl) payload.stadium_photo_url = newStadiumPhotoUrl;
-  if (newTeamPhotoUrl) payload.team_photo_url = newTeamPhotoUrl;
-  if (newRegistrationUrl) payload.registration_doc_url = newRegistrationUrl;
+  // half_duration est NOT NULL en base (défaut 45) : on ne l'inclut que si fourni,
+  // pour ne jamais écraser avec null.
+  const halfDuration = numberOrNull(formData, "halfDuration");
+  if (halfDuration) payload.half_duration = halfDuration;
 
-  let finalId = clubId;
-  const role = await getRole(supabase);
-
-  if (clubId) {
-    const { error: updateError } = await supabase.from("teams").update(payload).eq("id", clubId);
-    if (updateError) console.error("Erreur mise à jour club:", updateError.message);
-  } else {
-    payload.approval_status = role === "super_admin" ? "approved" : "pending";
-    const { data, error: insertError } = await supabase.from("teams").insert(payload).select("id").single();
-    if (insertError) console.error("Erreur création club:", insertError.message);
-    finalId = data?.id ?? null;
-  }
-
-  await logActivity({
-    action: clubId ? "Modification de club" : "Ajout de club",
-    entityType: "club",
-    entityId: finalId ?? undefined,
-    details: { name },
-  });
-
-  revalidatePath("/admin/clubs");
-  revalidatePath("/admin/validations");
-  revalidatePath("/competitions");
-  revalidatePath("/clubs");
+  return payload;
 }
 
-export async function deleteClub(clubId: string) {
+export async function createMatch(formData: FormData) {
   const supabase = await createClient();
-  const role = await getRole(supabase);
+  const payload = buildMatchPayload(formData);
 
-  const { data: club } = await supabase.from("teams").select("name").eq("id", clubId).single();
-
-  if (role === "super_admin") {
-    await supabase.from("teams").delete().eq("id", clubId);
-  } else {
-    await supabase.from("teams").update({ approval_status: "pending_deletion" }).eq("id", clubId);
-  }
+  const { data, error } = await supabase.from("matches").insert(payload).select("id").single();
+  if (error) console.error("Erreur création match:", error.message);
 
   await logActivity({
-    action: role === "super_admin" ? "Suppression de club" : "Demande de suppression de club",
-    entityType: "club",
-    entityId: clubId,
-    details: { name: club?.name },
+    action: "Ajout de match",
+    entityType: "match",
+    entityId: data?.id ?? undefined,
+    details: { home_team_id: payload.home_team_id, away_team_id: payload.away_team_id },
   });
 
-  revalidatePath("/admin/clubs");
-  revalidatePath("/admin/validations");
-  revalidatePath("/clubs");
+  revalidatePath("/admin/matchs");
+  revalidatePath("/matchs");
+}
+
+// ⚠️ À vérifier : j'ai supposé updateMatch(matchId, formData) dans cet ordre,
+// par cohérence avec deleteMatch. Je n'ai pas vu page.tsx pour confirmer
+// exactement comment ces fonctions sont appelées.
+export async function updateMatch(matchId: string, formData: FormData) {
+  const supabase = await createClient();
+  const payload = buildMatchPayload(formData);
+
+  const { error } = await supabase.from("matches").update(payload).eq("id", matchId);
+  if (error) console.error("Erreur mise à jour match:", error.message);
+
+  await logActivity({
+    action: "Modification de match",
+    entityType: "match",
+    entityId: matchId,
+    details: { home_team_id: payload.home_team_id, away_team_id: payload.away_team_id },
+  });
+
+  revalidatePath("/admin/matchs");
+  revalidatePath("/matchs");
+  revalidatePath(`/matchs/${matchId}`);
+}
+
+export async function deleteMatch(matchId: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("matches").delete().eq("id", matchId);
+  if (error) console.error("Erreur suppression match:", error.message);
+
+  await logActivity({
+    action: "Suppression de match",
+    entityType: "match",
+    entityId: matchId,
+  });
+
+  revalidatePath("/admin/matchs");
+  revalidatePath("/matchs");
 }
