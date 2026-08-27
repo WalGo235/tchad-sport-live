@@ -103,6 +103,12 @@ export default async function ClubDetailPage({
                     {player.nationality ? ` · ${player.nationality}` : ""}
                   </p>
                 </div>
+                {player.goals > 0 && (
+                  <div className="flex items-center gap-1 text-gold text-sm font-mono shrink-0">
+                    <span>⚽</span>
+                    <span>{player.goals}</span>
+                  </div>
+                )}
               </Link>
             ))}
           </div>
