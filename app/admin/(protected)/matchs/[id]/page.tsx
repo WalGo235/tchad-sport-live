@@ -104,7 +104,7 @@ export default async function AdminMatchDetailPage({
       supabase
         .from("match_events")
         .select(
-          "id, event_type, minute, team_id, player:players!player_id(name), substituted_player:players!substituted_player_id(name)"
+          "id, event_type, minute, team_id, player:players!player_id(name), substituted_player:players!substituted_player_id(name), assist_player:players!assist_player_id(name)"
         )
         .eq("match_id", id)
         .order("minute"),
@@ -172,15 +172,18 @@ export default async function AdminMatchDetailPage({
             {events.map((event) => {
               const playerName = (event.player as unknown as { name: string } | null)?.name;
               const subName = (event.substituted_player as unknown as { name: string } | null)?.name;
+              const assistName = (event.assist_player as unknown as { name: string } | null)?.name;
               return (
                 <div key={event.id} className="flex items-center justify-between bg-night border border-white/10 rounded-lg px-3 py-2">
                   <span className="text-sm">
                     {event.minute ?? ""} — {EVENT_LABEL[event.event_type ?? ""] ?? event.event_type}
                     {event.event_type === "remplacement"
                       ? ` — ${playerName ?? "?"} remplace ${subName ?? "?"}`
-                      : playerName
-                        ? ` — ${playerName}`
-                        : ""}
+                      : event.event_type === "but" && assistName
+                        ? ` — ${playerName ?? "?"} (passe : ${assistName})`
+                        : playerName
+                          ? ` — ${playerName}`
+                          : ""}
                   </span>
                   <form action={deleteEvent.bind(null, id, event.id)}>
                     <button type="submit" className="text-live text-xs hover:underline">
@@ -232,6 +235,17 @@ export default async function AdminMatchDetailPage({
                   </option>
                 ))}
               </optgroup>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-muted block mb-1">Passeur décisif (uniquement pour un but)</label>
+            <select name="assistPlayerId" className="w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand">
+              <option value="">— Aucun —</option>
+              {allPlayers.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} ({p.team})
+                </option>
+              ))}
             </select>
           </div>
           <div>
