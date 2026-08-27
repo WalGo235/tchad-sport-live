@@ -35,7 +35,7 @@ export default function CommentsSection({
                       c.likedByMe ? "bg-gold text-night border-gold" : "border-white/10 text-muted hover:border-gold/50"
                     }`}
                   >
-                    👍 {c.likeCount}
+                    ❤️ {c.likeCount}
                   </button>
                 </form>
               </div>
