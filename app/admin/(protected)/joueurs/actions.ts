@@ -23,6 +23,15 @@ async function uploadFile(
   return `https://iqsrxyuazktyiyhpbzie.supabase.co/storage/v1/object/public/photos/${fileName}`;
 }
 
+async function getRole(supabase: Awaited<ReturnType<typeof createClient>>): Promise<string> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return "";
+  const { data: adminRow } = await supabase.from("admin_users").select("role").eq("user_id", user.id).single();
+  return adminRow?.role ?? "";
+}
+
 export async function upsertPlayer(playerId: string | null, formData: FormData) {
   const supabase = await createClient();
 
@@ -75,11 +84,13 @@ export async function upsertPlayer(playerId: string | null, formData: FormData) 
   if (newLicenseUrl) payload.license_doc_url = newLicenseUrl;
 
   let finalId = playerId;
+  const role = await getRole(supabase);
 
   if (playerId) {
     const { error: updateError } = await supabase.from("players").update(payload).eq("id", playerId);
     if (updateError) console.error("Erreur mise à jour joueur:", updateError.message);
   } else {
+    payload.approval_status = role === "super_admin" ? "approved" : "pending";
     const { data, error: insertError } = await supabase.from("players").insert(payload).select("id").single();
     if (insertError) console.error("Erreur création joueur:", insertError.message);
     finalId = data?.id ?? null;
@@ -93,17 +104,30 @@ export async function upsertPlayer(playerId: string | null, formData: FormData) 
   });
 
   revalidatePath("/admin/joueurs");
+  revalidatePath("/admin/validations");
+  revalidatePath("/joueurs");
 }
 
 export async function deletePlayer(playerId: string) {
   const supabase = await createClient();
+  const role = await getRole(supabase);
+
   const { data: player } = await supabase.from("players").select("name").eq("id", playerId).single();
-  await supabase.from("players").delete().eq("id", playerId);
+
+  if (role === "super_admin") {
+    await supabase.from("players").delete().eq("id", playerId);
+  } else {
+    await supabase.from("players").update({ approval_status: "pending_deletion" }).eq("id", playerId);
+  }
+
   await logActivity({
-    action: "Suppression de joueur",
+    action: role === "super_admin" ? "Suppression de joueur" : "Demande de suppression de joueur",
     entityType: "player",
     entityId: playerId,
     details: { name: player?.name },
   });
+
   revalidatePath("/admin/joueurs");
+  revalidatePath("/admin/validations");
+  revalidatePath("/joueurs");
 }
