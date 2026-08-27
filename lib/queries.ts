@@ -71,6 +71,20 @@ export async function getMatchesByCompetition(competitionId: string): Promise<Ma
   return (data as unknown as MatchRow[]).map(toMatchCard);
 }
 
+export async function getMatchesByTeam(teamId: string): Promise<MatchCardData[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("matches")
+    .select(
+      "id, home_score, away_score, status, match_date, minute, venue, half_duration, competition:competitions(name), home_team:teams!home_team_id(name, logo_url), away_team:teams!away_team_id(name, logo_url)"
+    )
+    .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
+    .order("match_date", { ascending: false });
+
+  if (error || !data) return [];
+  return (data as unknown as MatchRow[]).map(toMatchCard);
+}
+
 export interface MatchDetail {
   id: string;
   competition: string;
@@ -334,7 +348,19 @@ export interface ClubDetail {
   name: string;
   city: string | null;
   logoUrl: string | null;
-  players: { id: string; name: string; position: string | null; jerseyNumber: number | null }[];
+  description: string | null;
+  stadiumName: string | null;
+  foundedYear: string | null;
+  honors: string | null;
+  currentDivision: string | null;
+  players: {
+    id: string;
+    name: string;
+    position: string | null;
+    jerseyNumber: number | null;
+    photoUrl: string | null;
+    nationality: string | null;
+  }[];
 }
 
 export async function getClubDetail(id: string): Promise<ClubDetail | null> {
@@ -342,7 +368,9 @@ export async function getClubDetail(id: string): Promise<ClubDetail | null> {
 
   const { data: club, error } = await supabase
     .from("teams")
-    .select("id, name, city, logo_url")
+    .select(
+      "id, name, city, logo_url, description, stadium_name, founded_date, honors, current_division"
+    )
     .eq("id", id)
     .eq("approval_status", "approved")
     .single();
@@ -351,7 +379,7 @@ export async function getClubDetail(id: string): Promise<ClubDetail | null> {
 
   const { data: players } = await supabase
     .from("players")
-    .select("id, name, position, jersey_number")
+    .select("id, name, position, jersey_number, photo_url, nationality")
     .eq("team_id", id)
     .eq("approval_status", "approved")
     .order("jersey_number", { ascending: true, nullsFirst: false });
@@ -361,11 +389,18 @@ export async function getClubDetail(id: string): Promise<ClubDetail | null> {
     name: club.name,
     city: club.city,
     logoUrl: club.logo_url,
+    description: club.description,
+    stadiumName: club.stadium_name,
+    foundedYear: club.founded_date ? club.founded_date.slice(0, 4) : null,
+    honors: club.honors,
+    currentDivision: club.current_division,
     players: (players ?? []).map((p) => ({
       id: p.id,
       name: p.name,
       position: p.position,
       jerseyNumber: p.jersey_number,
+      photoUrl: p.photo_url,
+      nationality: p.nationality,
     })),
   };
 }
