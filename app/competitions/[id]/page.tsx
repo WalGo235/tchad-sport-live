@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCompetitionDetail, getMatchesByCompetition } from "@/lib/queries";
+import { getCompetitionPlayerStats } from "@/lib/queries-match-details";
 import MatchScheduleCard from "@/components/MatchScheduleCard";
 
 export const revalidate = 60;
@@ -24,26 +25,61 @@ export async function generateMetadata({
   };
 }
 
+function PlayerStatColumn({
+  title,
+  icon,
+  rows,
+}: {
+  title: string;
+  icon: string;
+  rows: { playerId: string; playerName: string; teamName: string; count: number }[];
+}) {
+  if (rows.length === 0) return null;
+  return (
+    <div>
+      <h3 className="text-xs uppercase tracking-wider text-gold mb-2">
+        {icon} {title}
+      </h3>
+      <div className="space-y-1">
+        {rows.map((p) => (
+          <div
+            key={p.playerId}
+            className="flex items-center justify-between text-sm bg-surface border border-white/10 rounded-lg px-3 py-2"
+          >
+            <div>
+              <p>{p.playerName}</p>
+              <p className="text-xs text-muted">{p.teamName}</p>
+            </div>
+            <span className="font-mono text-gold font-bold">{p.count}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default async function CompetitionDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [competition, matches] = await Promise.all([getCompetitionDetail(id), getMatchesByCompetition(id)]);
+  const [competition, matches, playerStats] = await Promise.all([
+    getCompetitionDetail(id),
+    getMatchesByCompetition(id),
+    getCompetitionPlayerStats(id),
+  ]);
 
   if (!competition) notFound();
+
+  const hasPlayerStats =
+    playerStats.topScorers.length > 0 || playerStats.topAssists.length > 0 || playerStats.mostCards.length > 0;
 
   return (
     <section className="mx-auto max-w-2xl px-4 py-16">
       <h1 className="font-display text-4xl tracking-wide mb-2">{competition.name}</h1>
       <p className="text-muted mb-8">
-        {[
-          competition.season,
-          competition.isOfficial ? null : competition.category,
-        ]
-          .filter(Boolean)
-          .join(" · ")}
+        {[competition.season, competition.isOfficial ? null : competition.category].filter(Boolean).join(" · ")}
       </p>
 
       {competition.standings.length > 0 && (
@@ -80,6 +116,17 @@ export default async function CompetitionDetailPage({
         </>
       )}
 
+      {hasPlayerStats && (
+        <div className="mb-10">
+          <h2 className="font-display text-2xl tracking-wide mb-4">STATISTIQUES INDIVIDUELLES</h2>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <PlayerStatColumn title="Buteurs" icon="⚽" rows={playerStats.topScorers} />
+            <PlayerStatColumn title="Passeurs" icon="🅰️" rows={playerStats.topAssists} />
+            <PlayerStatColumn title="Cartons" icon="🟨" rows={playerStats.mostCards} />
+          </div>
+        </div>
+      )}
+
       {matches.length > 0 && (
         <div className="mb-10">
           <h2 className="font-display text-2xl tracking-wide mb-4">CALENDRIER</h2>
@@ -96,10 +143,7 @@ export default async function CompetitionDetailPage({
           <h2 className="font-display text-2xl tracking-wide mb-4">PHASES</h2>
           <div className="flex flex-wrap gap-2">
             {competition.phases.map((phase) => (
-              <span
-                key={phase.id}
-                className="bg-surface border border-white/10 rounded-full px-4 py-2 text-sm"
-              >
+              <span key={phase.id} className="bg-surface border border-white/10 rounded-full px-4 py-2 text-sm">
                 {phase.name}
               </span>
             ))}
