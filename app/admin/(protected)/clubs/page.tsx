@@ -24,6 +24,17 @@ export default async function AdminClubsPage() {
   const clubsQuery = supabase.from("teams").select("*").order("name");
   const { data: clubs } = managedTeamId ? await clubsQuery.eq("id", managedTeamId) : await clubsQuery;
 
+  let hasPendingEdit = false;
+  if (managedTeamId) {
+    const { data: pending } = await supabase
+      .from("pending_edits")
+      .select("id")
+      .eq("entity_type", "club")
+      .eq("entity_id", managedTeamId)
+      .maybeSingle();
+    hasPendingEdit = !!pending;
+  }
+
   return (
     <section className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="font-display text-4xl tracking-wide mb-6">CLUBS</h1>
@@ -49,6 +60,13 @@ export default async function AdminClubsPage() {
               </span>
               <span className="text-xs text-muted font-normal">{club.city}</span>
             </summary>
+
+            {managedTeamId && hasPendingEdit && (
+              <div className="mt-4 text-xs px-3 py-2 rounded-lg bg-gold/10 text-gold border border-gold/20">
+                ⏳ Une modification est en attente de validation par un administrateur.
+              </div>
+            )}
+
             <div className="mt-4">
               <ClubForm
                 action={upsertClub.bind(null, club.id)}
