@@ -1,3 +1,5 @@
+import SubmitButton from "@/components/SubmitButton";
+
 interface ClubFormProps {
   action: (formData: FormData) => Promise<void>;
   submitLabel: string;
@@ -234,12 +236,7 @@ export default function ClubForm({ action, defaultValues: d, submitLabel }: Club
         </Field>
       </div>
 
-      <button
-        type="submit"
-        className="w-full bg-gold text-night font-semibold rounded-lg px-4 py-3 hover:opacity-90 transition-opacity"
-      >
-        {submitLabel}
-      </button>
+      <SubmitButton label={submitLabel} pendingMessage="En attente de validation par un administrateur..." />
     </form>
   );
 }
