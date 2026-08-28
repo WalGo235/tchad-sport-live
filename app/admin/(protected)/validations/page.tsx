@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { approveItem, rejectItem, approveEdit, rejectEdit } from "./actions";
 
-const FIELD_LABELS: Record<string, string> = {
+const CLUB_FIELD_LABELS: Record<string, string> = {
   name: "Nom",
   description: "Description",
   abbreviation: "Abréviation",
@@ -43,6 +43,49 @@ const FIELD_LABELS: Record<string, string> = {
   registration_doc_url: "Document d'inscription",
 };
 
+const PLAYER_FIELD_LABELS: Record<string, string> = {
+  name: "Nom",
+  team_id: "Club",
+  position: "Poste",
+  jersey_number: "Numéro de maillot",
+  photo_url: "Photo",
+  date_of_birth: "Date de naissance",
+  birth_place: "Lieu de naissance",
+  nationality: "Nationalité",
+  height_cm: "Taille (cm)",
+  weight_kg: "Poids (kg)",
+  other_positions: "Postes secondaires",
+  preferred_foot: "Pied fort",
+  address: "Adresse",
+  phone: "Téléphone",
+  email: "Email",
+  social_links: "Réseaux sociaux",
+  joined_year: "Année d'arrivée",
+  previous_clubs: "Clubs précédents",
+  level: "Niveau",
+  major_competitions: "Compétitions majeures",
+  national_selections: "Sélections nationales",
+  matches_played: "Matchs joués",
+  goals: "Buts",
+  assists: "Passes décisives",
+  yellow_cards: "Cartons jaunes",
+  red_cards: "Cartons rouges",
+  minutes_played: "Minutes jouées",
+  rating_speed: "Note vitesse",
+  rating_stamina: "Note endurance",
+  rating_technique: "Note technique",
+  rating_vision: "Note vision",
+  rating_shooting: "Note tir",
+  rating_defense: "Note défense",
+  rating_dribbling: "Note dribble",
+  rating_aerial: "Note aérien",
+  dream: "Rêve",
+  inspiration: "Inspiration",
+  season_goal: "Objectif de la saison",
+  license_doc_url: "Document de licence",
+  highlight_video_url: "Vidéo highlights",
+};
+
 function formatValue(v: unknown): string {
   if (v === null || v === undefined || v === "") return "—";
   return String(v);
@@ -57,15 +100,17 @@ interface ComparisonRow {
 
 function buildComparison(
   changes: Record<string, unknown>,
-  current: Record<string, unknown> | undefined
+  current: Record<string, unknown> | undefined,
+  labels: Record<string, string>,
+  valueFormatter: (key: string, v: unknown) => string = (_key, v) => formatValue(v)
 ): ComparisonRow[] {
   if (!current) return [];
-  return Object.keys(FIELD_LABELS)
+  return Object.keys(labels)
     .filter((key) => key in changes)
     .map((key) => {
-      const before = formatValue(current[key]);
-      const after = formatValue(changes[key]);
-      return { label: FIELD_LABELS[key], before, after, changed: before !== after };
+      const before = valueFormatter(key, current[key]);
+      const after = valueFormatter(key, changes[key]);
+      return { label: labels[key], before, after, changed: before !== after };
     });
 }
 
@@ -86,25 +131,52 @@ export default async function AdminValidationsPage() {
   ]);
 
   const clubEditEntityIds = (edits ?? []).filter((e) => e.entity_type === "club").map((e) => e.entity_id);
-  const { data: currentClubsForEdits } =
+  const playerEditEntityIds = (edits ?? []).filter((e) => e.entity_type === "player").map((e) => e.entity_id);
+
+  const [{ data: currentClubsForEdits }, { data: currentPlayersForEdits }, { data: allTeams }] = await Promise.all([
     clubEditEntityIds.length > 0
-      ? await supabase.from("teams").select("*").in("id", clubEditEntityIds)
-      : { data: [] as Record<string, unknown>[] };
+      ? supabase.from("teams").select("*").in("id", clubEditEntityIds)
+      : Promise.resolve({ data: [] as Record<string, unknown>[] }),
+    playerEditEntityIds.length > 0
+      ? supabase.from("players").select("*").in("id", playerEditEntityIds)
+      : Promise.resolve({ data: [] as Record<string, unknown>[] }),
+    supabase.from("teams").select("id, name"),
+  ]);
+
   const currentClubById = new Map(
     (currentClubsForEdits ?? []).map((c) => [(c as Record<string, unknown>).id as string, c as Record<string, unknown>])
   );
+  const currentPlayerById = new Map(
+    (currentPlayersForEdits ?? []).map((p) => [(p as Record<string, unknown>).id as string, p as Record<string, unknown>])
+  );
+  const teamNameById = new Map((allTeams ?? []).map((t) => [t.id as string, t.name as string]));
 
-  const editsFor = (entityType: string) =>
+  const formatPlayerValue = (key: string, v: unknown): string => {
+    if (key === "team_id" && v) return teamNameById.get(v as string) ?? formatValue(v);
+    return formatValue(v);
+  };
+
+  const editsFor = (entityType: "club" | "player" | "competition") =>
     (edits ?? [])
       .filter((e) => e.entity_type === entityType)
       .map((e) => {
         const changes = e.changes as Record<string, unknown>;
-        const current = entityType === "club" ? currentClubById.get(e.entity_id) : undefined;
+        let comparison: ComparisonRow[] = [];
+        if (entityType === "club") {
+          comparison = buildComparison(changes, currentClubById.get(e.entity_id), CLUB_FIELD_LABELS);
+        } else if (entityType === "player") {
+          comparison = buildComparison(
+            changes,
+            currentPlayerById.get(e.entity_id),
+            PLAYER_FIELD_LABELS,
+            formatPlayerValue
+          );
+        }
         return {
           id: e.id as string,
           name: (changes?.name as string) ?? "?",
           submittedBy: e.submitted_by_name as string | null,
-          comparison: buildComparison(changes, current),
+          comparison,
         };
       });
 
@@ -183,10 +255,7 @@ export default async function AdminValidationsPage() {
                           </div>
                         </div>
                         {edit.comparison.map((row) => (
-                          <div
-                            key={row.label}
-                            className="grid grid-cols-2 text-sm border-t border-white/5"
-                          >
+                          <div key={row.label} className="grid grid-cols-2 text-sm border-t border-white/5">
                             <div
                               className={`px-3 py-2 break-words ${
                                 row.changed ? "text-live bg-live/5" : "text-muted"
