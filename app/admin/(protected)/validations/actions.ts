@@ -64,4 +64,50 @@ export async function rejectItem(table: TableName, id: string) {
   }
 
   revalidatePath("/admin/validations");
-                     }
+}
+
+// --- Modifications proposées (fiches déjà approuvées, modifiées par un gestionnaire) ---
+
+export async function approveEdit(table: TableName, editId: string) {
+  const supabase = await createClient();
+
+  const { data: edit } = await supabase.from("pending_edits").select("entity_id, changes").eq("id", editId).single();
+  if (!edit) return;
+
+  const { error: updateError } = await supabase
+    .from(table)
+    .update(edit.changes as Record<string, unknown>)
+    .eq("id", edit.entity_id);
+  if (updateError) console.error("Erreur application modification:", updateError.message);
+
+  await supabase.from("pending_edits").delete().eq("id", editId);
+
+  await logActivity({
+    action: `Modification approuvée (${LABELS[table]})`,
+    entityType: table,
+    entityId: edit.entity_id,
+    details: { name: (edit.changes as Record<string, unknown>)?.name },
+  });
+
+  revalidatePath("/admin/validations");
+  revalidatePath(`/${table === "teams" ? "clubs" : table === "players" ? "joueurs" : "competitions"}`);
+  if (table === "teams") revalidatePath(`/clubs/${edit.entity_id}`);
+}
+
+export async function rejectEdit(table: TableName, editId: string) {
+  const supabase = await createClient();
+
+  const { data: edit } = await supabase.from("pending_edits").select("entity_id, changes").eq("id", editId).single();
+  if (!edit) return;
+
+  await supabase.from("pending_edits").delete().eq("id", editId);
+
+  await logActivity({
+    action: `Modification rejetée (${LABELS[table]})`,
+    entityType: table,
+    entityId: edit.entity_id,
+    details: { name: (edit.changes as Record<string, unknown>)?.name },
+  });
+
+  revalidatePath("/admin/validations");
+}
