@@ -11,6 +11,7 @@ const MAIN_SECTIONS = [
   { href: "/admin/joueurs", title: "Joueurs", desc: "Gérer les profils des joueurs" },
   { href: "/admin/competitions", title: "Compétitions", desc: "Créer et modifier les compétitions" },
   { href: "/admin/logs", title: "Logs d'activité", desc: "Qui a fait quoi, et export CSV" },
+  { href: "/admin/validations", title: "Validations", desc: "Créations, suppressions et modifications en attente" },
 ];
 
 const HISTOIRE_SECTIONS = [
