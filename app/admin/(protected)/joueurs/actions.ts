@@ -87,6 +87,38 @@ export async function upsertPlayer(playerId: string | null, formData: FormData) 
   const role = await getRole(supabase);
 
   if (playerId) {
+    const { data: current } = await supabase.from("players").select("approval_status").eq("id", playerId).single();
+
+    // Fiche déjà publique + modifiée par un gestionnaire (pas super_admin) :
+    // on NE touche PAS à "players", on stocke la proposition à part pour validation.
+    if (role !== "super_admin" && current?.approval_status === "approved") {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      await supabase.from("pending_edits").upsert(
+        {
+          entity_type: "player",
+          entity_id: playerId,
+          changes: payload,
+          submitted_by: user?.id ?? null,
+          submitted_by_name: user?.email ?? null,
+        },
+        { onConflict: "entity_type,entity_id" }
+      );
+
+      await logActivity({
+        action: "Modification proposée (joueur)",
+        entityType: "player",
+        entityId: playerId,
+        details: { name },
+      });
+
+      revalidatePath("/admin/validations");
+      revalidatePath("/admin/joueurs");
+      return;
+    }
+
     const { error: updateError } = await supabase.from("players").update(payload).eq("id", playerId);
     if (updateError) console.error("Erreur mise à jour joueur:", updateError.message);
   } else {
