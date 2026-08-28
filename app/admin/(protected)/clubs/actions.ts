@@ -33,17 +33,33 @@ function numberOrNull(formData: FormData, key: string) {
   return value ? Number(value) : null;
 }
 
-async function getRole(supabase: Awaited<ReturnType<typeof createClient>>): Promise<string> {
+async function getRoleAndScope(
+  supabase: Awaited<ReturnType<typeof createClient>>
+): Promise<{ role: string; managedTeamId: string | null }> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return "";
-  const { data: adminRow } = await supabase.from("admin_users").select("role").eq("user_id", user.id).single();
-  return adminRow?.role ?? "";
+  if (!user) return { role: "", managedTeamId: null };
+  const { data: adminRow } = await supabase
+    .from("admin_users")
+    .select("role, managed_team_id")
+    .eq("user_id", user.id)
+    .single();
+  return { role: adminRow?.role ?? "", managedTeamId: adminRow?.managed_team_id ?? null };
 }
 
 export async function upsertClub(clubId: string | null, formData: FormData) {
   const supabase = await createClient();
+  const { role, managedTeamId } = await getRoleAndScope(supabase);
+
+  // Un gestionnaire_clubs scopé à un club précis ne peut agir que sur celui-ci :
+  // ni créer un nouveau club, ni modifier un autre club que le sien.
+  if (role === "gestionnaire_clubs" && managedTeamId) {
+    if (!clubId || clubId !== managedTeamId) {
+      console.error("Action refusée : club hors du périmètre de ce gestionnaire.");
+      return;
+    }
+  }
 
   const newLogoUrl = await uploadFile(supabase, formData.get("logoFile") as File | null, "clubs");
   const newStadiumPhotoUrl = await uploadFile(supabase, formData.get("stadiumPhotoFile") as File | null, "stades");
@@ -95,7 +111,6 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
   if (newRegistrationUrl) payload.registration_doc_url = newRegistrationUrl;
 
   let finalId = clubId;
-  const role = await getRole(supabase);
 
   if (clubId) {
     const { data: current } = await supabase.from("teams").select("approval_status").eq("id", clubId).single();
@@ -154,7 +169,12 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
 
 export async function deleteClub(clubId: string) {
   const supabase = await createClient();
-  const role = await getRole(supabase);
+  const { role, managedTeamId } = await getRoleAndScope(supabase);
+
+  if (role === "gestionnaire_clubs" && managedTeamId && clubId !== managedTeamId) {
+    console.error("Action refusée : club hors du périmètre de ce gestionnaire.");
+    return;
+  }
 
   const { data: club } = await supabase.from("teams").select("name").eq("id", clubId).single();
 
