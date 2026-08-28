@@ -142,6 +142,7 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
       });
 
       revalidatePath("/admin/validations");
+      revalidatePath("/admin/clubs");
       return;
     }
 
