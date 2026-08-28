@@ -4,6 +4,32 @@ interface ClubFormProps {
   defaultValues?: Record<string, string | number | null | undefined>;
 }
 
+const PROVINCES_TCHAD = [
+  "Batha",
+  "Barh El Gazel",
+  "Borkou",
+  "Chari-Baguirmi",
+  "Ennedi-Est",
+  "Ennedi-Ouest",
+  "Guéra",
+  "Hadjer-Lamis",
+  "Kanem",
+  "Lac",
+  "Logone Occidental",
+  "Logone Oriental",
+  "Mandoul",
+  "Mayo-Kebbi Est",
+  "Mayo-Kebbi Ouest",
+  "Moyen-Chari",
+  "N'Djamena",
+  "Ouaddaï",
+  "Salamat",
+  "Sila",
+  "Tandjilé",
+  "Tibesti",
+  "Wadi Fira",
+];
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
@@ -39,12 +65,19 @@ export default function ClubForm({ action, defaultValues: d, submitLabel }: Club
             <input type="text" name="city" defaultValue={v("city")} className={inputClass} />
           </Field>
           <Field label="Région">
-            <input type="text" name="region" defaultValue={v("region")} className={inputClass} />
+            <select name="region" defaultValue={v("region")} className={inputClass}>
+              <option value="">Sélectionner...</option>
+              {PROVINCES_TCHAD.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Pays">
-            <input type="text" name="country" defaultValue={v("country")} className={inputClass} />
+            <input type="text" name="country" defaultValue={v("country") || "Tchad"} className={inputClass} />
           </Field>
           <Field label="Couleurs officielles">
             <input type="text" name="colors" defaultValue={v("colors")} className={inputClass} />
