@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasAccess } from "@/lib/permissions";
 
@@ -51,8 +52,18 @@ export default async function AdminDashboard() {
 
   let role = "";
   if (user) {
-    const { data: adminRow } = await supabase.from("admin_users").select("role").eq("user_id", user.id).single();
+    const { data: adminRow } = await supabase
+      .from("admin_users")
+      .select("role, managed_team_id")
+      .eq("user_id", user.id)
+      .single();
     role = adminRow?.role ?? "";
+
+    // Un gestionnaire_clubs assigné à un club précis atterrit directement dessus,
+    // pas sur le tableau de bord général.
+    if (role === "gestionnaire_clubs" && adminRow?.managed_team_id) {
+      redirect("/admin/clubs");
+    }
   }
 
   const visibleMain = MAIN_SECTIONS.filter((s) => hasAccess(role, s.href));
