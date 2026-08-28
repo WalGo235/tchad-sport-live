@@ -98,6 +98,38 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
   const role = await getRole(supabase);
 
   if (clubId) {
+    const { data: current } = await supabase.from("teams").select("approval_status").eq("id", clubId).single();
+
+    // Fiche déjà publique + modifiée par un gestionnaire (pas super_admin) :
+    // on NE touche PAS à "teams" (les vraies infos restent visibles au public
+    // pendant l'attente), on stocke la proposition à part pour validation.
+    if (role !== "super_admin" && current?.approval_status === "approved") {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      await supabase.from("pending_edits").upsert(
+        {
+          entity_type: "club",
+          entity_id: clubId,
+          changes: payload,
+          submitted_by: user?.id ?? null,
+          submitted_by_name: user?.email ?? null,
+        },
+        { onConflict: "entity_type,entity_id" }
+      );
+
+      await logActivity({
+        action: "Modification proposée (club)",
+        entityType: "club",
+        entityId: clubId,
+        details: { name },
+      });
+
+      revalidatePath("/admin/validations");
+      return;
+    }
+
     const { error: updateError } = await supabase.from("teams").update(payload).eq("id", clubId);
     if (updateError) console.error("Erreur mise à jour club:", updateError.message);
   } else {
