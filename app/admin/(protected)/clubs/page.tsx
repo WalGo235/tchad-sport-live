@@ -4,21 +4,41 @@ import ClubForm from "./ClubForm";
 
 export default async function AdminClubsPage() {
   const supabase = await createClient();
-  const { data: clubs } = await supabase.from("teams").select("*").order("name");
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let managedTeamId: string | null = null;
+  if (user) {
+    const { data: adminRow } = await supabase
+      .from("admin_users")
+      .select("role, managed_team_id")
+      .eq("user_id", user.id)
+      .single();
+    if (adminRow?.role === "gestionnaire_clubs" && adminRow.managed_team_id) {
+      managedTeamId = adminRow.managed_team_id;
+    }
+  }
+
+  const clubsQuery = supabase.from("teams").select("*").order("name");
+  const { data: clubs } = managedTeamId ? await clubsQuery.eq("id", managedTeamId) : await clubsQuery;
 
   return (
     <section className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="font-display text-4xl tracking-wide mb-6">CLUBS</h1>
 
-      <div className="bg-surface border border-white/10 rounded-lg p-4 mb-10">
-        <h2 className="font-semibold mb-4">Nouveau club</h2>
-        <ClubForm action={upsertClub.bind(null, null)} submitLabel="Ajouter" />
-      </div>
+      {!managedTeamId && (
+        <div className="bg-surface border border-white/10 rounded-lg p-4 mb-10">
+          <h2 className="font-semibold mb-4">Nouveau club</h2>
+          <ClubForm action={upsertClub.bind(null, null)} submitLabel="Ajouter" />
+        </div>
+      )}
 
-      <h2 className="font-semibold mb-4">Clubs existants</h2>
+      <h2 className="font-semibold mb-4">{managedTeamId ? "Ton club" : "Clubs existants"}</h2>
       <div className="space-y-4">
         {clubs?.map((club) => (
-          <details key={club.id} className="bg-surface border border-white/10 rounded-lg p-4">
+          <details key={club.id} open={!!managedTeamId} className="bg-surface border border-white/10 rounded-lg p-4">
             <summary className="cursor-pointer font-semibold flex items-center justify-between gap-3">
               <span className="flex items-center gap-3">
                 {club.logo_url && (
