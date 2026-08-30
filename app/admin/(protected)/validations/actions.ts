@@ -13,8 +13,22 @@ const LABELS: Record<TableName, string> = {
   competitions: "compétition",
 };
 
+async function isSuperAdmin(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { data: adminRow } = await supabase.from("admin_users").select("role").eq("user_id", user.id).single();
+  return adminRow?.role === "super_admin";
+}
+
 export async function approveItem(table: TableName, id: string) {
   const supabase = await createClient();
+  if (!(await isSuperAdmin(supabase))) {
+    console.error("Action refusée : seul un super_admin peut valider.");
+    return;
+  }
+
   const { data: item } = await supabase.from(table).select("name").eq("id", id).single();
 
   const { data: current } = await supabase.from(table).select("approval_status").eq("id", id).single();
@@ -43,6 +57,11 @@ export async function approveItem(table: TableName, id: string) {
 
 export async function rejectItem(table: TableName, id: string) {
   const supabase = await createClient();
+  if (!(await isSuperAdmin(supabase))) {
+    console.error("Action refusée : seul un super_admin peut rejeter.");
+    return;
+  }
+
   const { data: item } = await supabase.from(table).select("name, approval_status").eq("id", id).single();
 
   if (item?.approval_status === "pending_deletion") {
@@ -70,6 +89,10 @@ export async function rejectItem(table: TableName, id: string) {
 
 export async function approveEdit(table: TableName, editId: string) {
   const supabase = await createClient();
+  if (!(await isSuperAdmin(supabase))) {
+    console.error("Action refusée : seul un super_admin peut valider.");
+    return;
+  }
 
   const { data: edit } = await supabase.from("pending_edits").select("entity_id, changes").eq("id", editId).single();
   if (!edit) return;
@@ -96,6 +119,10 @@ export async function approveEdit(table: TableName, editId: string) {
 
 export async function rejectEdit(table: TableName, editId: string) {
   const supabase = await createClient();
+  if (!(await isSuperAdmin(supabase))) {
+    console.error("Action refusée : seul un super_admin peut rejeter.");
+    return;
+  }
 
   const { data: edit } = await supabase.from("pending_edits").select("entity_id, changes").eq("id", editId).single();
   if (!edit) return;
