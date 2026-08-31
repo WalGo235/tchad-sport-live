@@ -9,6 +9,7 @@ export default async function AdminClubsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  let role = "";
   let managedTeamId: string | null = null;
   if (user) {
     const { data: adminRow } = await supabase
@@ -16,10 +17,16 @@ export default async function AdminClubsPage() {
       .select("role, managed_team_id")
       .eq("user_id", user.id)
       .single();
-    if (adminRow?.role === "gestionnaire_clubs" && adminRow.managed_team_id) {
+    role = adminRow?.role ?? "";
+    if (role === "gestionnaire_clubs" && adminRow?.managed_team_id) {
       managedTeamId = adminRow.managed_team_id;
     }
   }
+
+  // Vrai pour tout compte non-super_admin : sa proposition (création ou
+  // modification) doit toujours passer par une validation, quel que soit le
+  // mécanisme exact (statut "pending" ou table pending_edits).
+  const requiresValidation = role !== "super_admin";
 
   const clubsQuery = supabase.from("teams").select("*").order("name");
   const { data: clubs } = managedTeamId ? await clubsQuery.eq("id", managedTeamId) : await clubsQuery;
@@ -42,7 +49,7 @@ export default async function AdminClubsPage() {
       {!managedTeamId && (
         <div className="bg-surface border border-white/10 rounded-lg p-4 mb-10">
           <h2 className="font-semibold mb-4">Nouveau club</h2>
-          <ClubForm action={upsertClub.bind(null, null)} submitLabel="Ajouter" />
+          <ClubForm action={upsertClub.bind(null, null)} submitLabel="Ajouter" requiresValidation={requiresValidation} />
         </div>
       )}
 
@@ -71,12 +78,14 @@ export default async function AdminClubsPage() {
               <ClubForm
                 action={upsertClub.bind(null, club.id)}
                 submitLabel="Enregistrer"
+                requiresValidation={requiresValidation}
                 defaultValues={{
                   name: club.name,
                   abbreviation: club.abbreviation,
                   foundedDate: club.founded_date,
                   city: club.city,
                   region: club.region,
+                  arrondissement: club.arrondissement,
                   country: club.country,
                   colors: club.colors,
                   motto: club.motto,
