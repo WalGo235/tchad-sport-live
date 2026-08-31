@@ -1,5 +1,5 @@
 import SubmitButton from "@/components/SubmitButton";
-import CityRegionFields from "./CityRegionFields";
+import CityRegionFields from "@/components/CityRegionFields";
 
 interface ClubFormProps {
   action: (formData: FormData) => Promise<void>;
