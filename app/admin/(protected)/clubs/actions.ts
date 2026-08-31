@@ -74,6 +74,7 @@ export async function upsertClub(clubId: string | null, formData: FormData) {
     founded_date: textOrNull(formData, "foundedDate"),
     city: textOrNull(formData, "city"),
     region: textOrNull(formData, "region"),
+    arrondissement: textOrNull(formData, "arrondissement"),
     country: textOrNull(formData, "country"),
     colors: textOrNull(formData, "colors"),
     motto: textOrNull(formData, "motto"),
