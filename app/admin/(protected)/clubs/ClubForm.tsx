@@ -1,36 +1,12 @@
 import SubmitButton from "@/components/SubmitButton";
+import CityRegionFields from "./CityRegionFields";
 
 interface ClubFormProps {
   action: (formData: FormData) => Promise<void>;
   submitLabel: string;
   defaultValues?: Record<string, string | number | null | undefined>;
+  requiresValidation?: boolean;
 }
-
-const PROVINCES_TCHAD = [
-  "Batha",
-  "Barh El Gazel",
-  "Borkou",
-  "Chari-Baguirmi",
-  "Ennedi-Est",
-  "Ennedi-Ouest",
-  "Guéra",
-  "Hadjer-Lamis",
-  "Kanem",
-  "Lac",
-  "Logone Occidental",
-  "Logone Oriental",
-  "Mandoul",
-  "Mayo-Kebbi Est",
-  "Mayo-Kebbi Ouest",
-  "Moyen-Chari",
-  "N'Djamena",
-  "Ouaddaï",
-  "Salamat",
-  "Sila",
-  "Tandjilé",
-  "Tibesti",
-  "Wadi Fira",
-];
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -44,7 +20,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const inputClass =
   "w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted";
 
-export default function ClubForm({ action, defaultValues: d, submitLabel }: ClubFormProps) {
+export default function ClubForm({ action, defaultValues: d, submitLabel, requiresValidation }: ClubFormProps) {
   const v = (key: string) => (d?.[key] ?? "") as string | number;
 
   return (
@@ -62,21 +38,11 @@ export default function ClubForm({ action, defaultValues: d, submitLabel }: Club
             <input type="date" name="foundedDate" defaultValue={v("foundedDate")} className={inputClass} />
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Ville / Commune">
-            <input type="text" name="city" defaultValue={v("city")} className={inputClass} />
-          </Field>
-          <Field label="Région">
-            <select name="region" defaultValue={v("region")} className={inputClass}>
-              <option value="">Sélectionner...</option>
-              {PROVINCES_TCHAD.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
+        <CityRegionFields
+          cityDefault={v("city") as string}
+          regionDefault={v("region") as string}
+          arrondissementDefault={v("arrondissement") as string}
+        />
         <div className="grid grid-cols-2 gap-3">
           <Field label="Pays">
             <input type="text" name="country" defaultValue={v("country") || "Tchad"} className={inputClass} />
@@ -236,7 +202,10 @@ export default function ClubForm({ action, defaultValues: d, submitLabel }: Club
         </Field>
       </div>
 
-      <SubmitButton label={submitLabel} pendingMessage="En attente de validation par un administrateur..." />
+      <SubmitButton
+        label={submitLabel}
+        pendingMessage={requiresValidation ? "En attente de validation par un administrateur..." : undefined}
+      />
     </form>
   );
 }
