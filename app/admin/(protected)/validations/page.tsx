@@ -8,6 +8,7 @@ const CLUB_FIELD_LABELS: Record<string, string> = {
   founded_date: "Date de fondation",
   city: "Ville",
   region: "Région",
+  arrondissement: "Arrondissement",
   country: "Pays",
   colors: "Couleurs",
   motto: "Devise",
