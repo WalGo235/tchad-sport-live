@@ -57,20 +57,30 @@ interface CityRegionFieldsProps {
   cityDefault?: string;
   regionDefault?: string;
   arrondissementDefault?: string;
+  exampleOnly?: boolean;
 }
 
 export default function CityRegionFields({
   cityDefault,
   regionDefault,
   arrondissementDefault,
+  exampleOnly,
 }: CityRegionFieldsProps) {
-  const [region, setRegion] = useState(regionDefault ?? "");
+  // En mode exemple, le menu Région ne peut pas être "pré-rempli en grisé" comme
+  // un champ texte (impossible nativement en HTML) : il reste donc vide, et
+  // l'exemple s'affiche en indication sous le menu à la place.
+  const [region, setRegion] = useState(exampleOnly ? "" : regionDefault ?? "");
 
   return (
     <>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Ville / Commune">
-          <input type="text" name="city" defaultValue={cityDefault} className={inputClass} />
+          <input
+            type="text"
+            name="city"
+            {...(exampleOnly ? { placeholder: cityDefault } : { defaultValue: cityDefault })}
+            className={inputClass}
+          />
         </Field>
         <Field label="Région">
           <select
@@ -86,6 +96,9 @@ export default function CityRegionFields({
               </option>
             ))}
           </select>
+          {exampleOnly && regionDefault && (
+            <p className="text-xs text-muted mt-1">Exemple : {regionDefault}</p>
+          )}
         </Field>
       </div>
 
