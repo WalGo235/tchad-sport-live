@@ -17,6 +17,7 @@ interface PlayerFormProps {
   teams: { id: string; name: string }[];
   submitLabel: string;
   defaultValues?: Record<string, string | number | null | undefined>;
+  exampleOnly?: boolean;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -31,30 +32,42 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const inputClass =
   "w-full bg-night border border-white/10 rounded-lg px-3 py-2 text-sand placeholder:text-muted";
 
-export default function PlayerForm({ action, teams, defaultValues: d, submitLabel }: PlayerFormProps) {
+export default function PlayerForm({ action, teams, defaultValues: d, submitLabel, exampleOnly }: PlayerFormProps) {
   const v = (key: string) => (d?.[key] ?? "") as string | number;
+
+  // En mode exemple : texte grisé (placeholder), jamais envoyé tant que l'admin
+  // ne tape rien lui-même. Sinon (édition d'une fiche réelle) : valeur
+  // pré-remplie normale, modifiable. Les menus déroulants n'ont pas d'équivalent
+  // "placeholder" natif : ils restent vides, avec l'exemple indiqué en dessous.
+  const fp = (key: string) => (exampleOnly ? { placeholder: String(v(key) || "") } : { defaultValue: v(key) });
+  const selectValue = (key: string) => (exampleOnly ? "" : v(key));
+  const selectHint = (key: string) =>
+    exampleOnly && v(key) ? <p className="text-xs text-muted mt-1">Exemple : {v(key)}</p> : null;
 
   return (
     <form action={action} className="space-y-6">
       <div className="space-y-3">
         <h3 className="text-xs uppercase tracking-wider text-gold">Informations générales</h3>
         <Field label="Nom complet">
-          <input type="text" name="name" required defaultValue={v("name")} className={inputClass} />
+          <input type="text" name="name" required {...fp("name")} className={inputClass} />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Date de naissance">
-            <input type="date" name="dateOfBirth" defaultValue={v("dateOfBirth")} className={inputClass} />
+            <input type="date" name="dateOfBirth" {...fp("dateOfBirth")} className={inputClass} />
+            {exampleOnly && v("dateOfBirth") && (
+              <p className="text-xs text-muted mt-1">Exemple : {v("dateOfBirth")}</p>
+            )}
           </Field>
           <Field label="Lieu de naissance">
-            <input type="text" name="birthPlace" defaultValue={v("birthPlace")} className={inputClass} />
+            <input type="text" name="birthPlace" {...fp("birthPlace")} className={inputClass} />
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Nationalité">
-            <input type="text" name="nationality" defaultValue={v("nationality")} className={inputClass} />
+            <input type="text" name="nationality" {...fp("nationality")} className={inputClass} />
           </Field>
           <Field label="Pied fort">
-            <select name="preferredFoot" defaultValue={v("preferredFoot")} className={inputClass}>
+            <select name="preferredFoot" defaultValue={selectValue("preferredFoot")} className={inputClass}>
               <option value="">—</option>
               {FEET.map((f) => (
                 <option key={f} value={f}>
@@ -62,18 +75,19 @@ export default function PlayerForm({ action, teams, defaultValues: d, submitLabe
                 </option>
               ))}
             </select>
+            {selectHint("preferredFoot")}
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Taille (cm)">
-            <input type="number" name="heightCm" defaultValue={v("heightCm")} className={inputClass} />
+            <input type="number" name="heightCm" {...fp("heightCm")} className={inputClass} />
           </Field>
           <Field label="Poids (kg)">
-            <input type="number" step="0.1" name="weightKg" defaultValue={v("weightKg")} className={inputClass} />
+            <input type="number" step="0.1" name="weightKg" {...fp("weightKg")} className={inputClass} />
           </Field>
         </div>
         <Field label="Poste préféré">
-          <select name="position" defaultValue={v("position")} className={inputClass}>
+          <select name="position" defaultValue={selectValue("position")} className={inputClass}>
             <option value="">—</option>
             {POSITIONS.map((p) => (
               <option key={p} value={p}>
@@ -81,13 +95,14 @@ export default function PlayerForm({ action, teams, defaultValues: d, submitLabe
               </option>
             ))}
           </select>
+          {selectHint("position")}
         </Field>
         <Field label="Autres postes possibles">
           <input
             type="text"
             name="otherPositions"
-            placeholder="ex: Ailier, Milieu défensif"
-            defaultValue={v("otherPositions")}
+            placeholder={exampleOnly ? String(v("otherPositions") || "") : "ex: Ailier, Milieu défensif"}
+            {...(exampleOnly ? {} : { defaultValue: v("otherPositions") })}
             className={inputClass}
           />
         </Field>
@@ -96,25 +111,25 @@ export default function PlayerForm({ action, teams, defaultValues: d, submitLabe
       <div className="space-y-3">
         <h3 className="text-xs uppercase tracking-wider text-gold">Coordonnées</h3>
         <Field label="Adresse">
-          <input type="text" name="address" defaultValue={v("address")} className={inputClass} />
+          <input type="text" name="address" {...fp("address")} className={inputClass} />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Téléphone">
-            <input type="text" name="phone" defaultValue={v("phone")} className={inputClass} />
+            <input type="text" name="phone" {...fp("phone")} className={inputClass} />
           </Field>
           <Field label="E-mail">
-            <input type="email" name="email" defaultValue={v("email")} className={inputClass} />
+            <input type="email" name="email" {...fp("email")} className={inputClass} />
           </Field>
         </div>
         <Field label="Réseaux sociaux">
-          <input type="text" name="socialLinks" defaultValue={v("socialLinks")} className={inputClass} />
+          <input type="text" name="socialLinks" {...fp("socialLinks")} className={inputClass} />
         </Field>
       </div>
 
       <div className="space-y-3">
         <h3 className="text-xs uppercase tracking-wider text-gold">Carrière sportive</h3>
         <Field label="Club actuel">
-          <select name="teamId" defaultValue={v("teamId")} className={inputClass}>
+          <select name="teamId" defaultValue={selectValue("teamId")} className={inputClass}>
             <option value="">— Club —</option>
             {teams.map((team) => (
               <option key={team.id} value={team.id}>
@@ -125,17 +140,17 @@ export default function PlayerForm({ action, teams, defaultValues: d, submitLabe
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Numéro de maillot">
-            <input type="number" name="jerseyNumber" defaultValue={v("jerseyNumber")} className={inputClass} />
+            <input type="number" name="jerseyNumber" {...fp("jerseyNumber")} className={inputClass} />
           </Field>
           <Field label="Année de début au club">
-            <input type="number" name="joinedYear" defaultValue={v("joinedYear")} className={inputClass} />
+            <input type="number" name="joinedYear" {...fp("joinedYear")} className={inputClass} />
           </Field>
         </div>
         <Field label="Clubs précédents (avec années)">
-          <textarea name="previousClubs" rows={2} defaultValue={v("previousClubs")} className={inputClass} />
+          <textarea name="previousClubs" rows={2} {...fp("previousClubs")} className={inputClass} />
         </Field>
         <Field label="Niveau actuel">
-          <select name="level" defaultValue={v("level")} className={inputClass}>
+          <select name="level" defaultValue={selectValue("level")} className={inputClass}>
             <option value="">—</option>
             {LEVELS.map((l) => (
               <option key={l} value={l}>
@@ -143,12 +158,13 @@ export default function PlayerForm({ action, teams, defaultValues: d, submitLabe
               </option>
             ))}
           </select>
+          {selectHint("level")}
         </Field>
         <Field label="Compétitions majeures disputées">
-          <textarea name="majorCompetitions" rows={2} defaultValue={v("majorCompetitions")} className={inputClass} />
+          <textarea name="majorCompetitions" rows={2} {...fp("majorCompetitions")} className={inputClass} />
         </Field>
         <Field label="Sélections nationales">
-          <textarea name="nationalSelections" rows={2} defaultValue={v("nationalSelections")} className={inputClass} />
+          <textarea name="nationalSelections" rows={2} {...fp("nationalSelections")} className={inputClass} />
         </Field>
       </div>
 
@@ -156,26 +172,26 @@ export default function PlayerForm({ action, teams, defaultValues: d, submitLabe
         <h3 className="text-xs uppercase tracking-wider text-gold">Statistiques (saison en cours)</h3>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Matchs joués">
-            <input type="number" name="matchesPlayed" defaultValue={v("matchesPlayed")} className={inputClass} />
+            <input type="number" name="matchesPlayed" {...fp("matchesPlayed")} className={inputClass} />
           </Field>
           <Field label="Minutes jouées">
-            <input type="number" name="minutesPlayed" defaultValue={v("minutesPlayed")} className={inputClass} />
+            <input type="number" name="minutesPlayed" {...fp("minutesPlayed")} className={inputClass} />
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Buts marqués">
-            <input type="number" name="goals" defaultValue={v("goals")} className={inputClass} />
+            <input type="number" name="goals" {...fp("goals")} className={inputClass} />
           </Field>
           <Field label="Passes décisives">
-            <input type="number" name="assists" defaultValue={v("assists")} className={inputClass} />
+            <input type="number" name="assists" {...fp("assists")} className={inputClass} />
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Cartons jaunes">
-            <input type="number" name="yellowCards" defaultValue={v("yellowCards")} className={inputClass} />
+            <input type="number" name="yellowCards" {...fp("yellowCards")} className={inputClass} />
           </Field>
           <Field label="Cartons rouges">
-            <input type="number" name="redCards" defaultValue={v("redCards")} className={inputClass} />
+            <input type="number" name="redCards" {...fp("redCards")} className={inputClass} />
           </Field>
         </div>
       </div>
@@ -185,7 +201,7 @@ export default function PlayerForm({ action, teams, defaultValues: d, submitLabe
         <div className="grid grid-cols-2 gap-3">
           {RATING_FIELDS.map((r) => (
             <Field key={r.name} label={r.label}>
-              <input type="number" min={1} max={10} name={r.name} defaultValue={v(r.name)} className={inputClass} />
+              <input type="number" min={1} max={10} name={r.name} {...fp(r.name)} className={inputClass} />
             </Field>
           ))}
         </div>
@@ -194,13 +210,13 @@ export default function PlayerForm({ action, teams, defaultValues: d, submitLabe
       <div className="space-y-3">
         <h3 className="text-xs uppercase tracking-wider text-gold">Objectifs & Motivations</h3>
         <Field label="Rêve en tant que joueur">
-          <textarea name="dream" rows={2} defaultValue={v("dream")} className={inputClass} />
+          <textarea name="dream" rows={2} {...fp("dream")} className={inputClass} />
         </Field>
         <Field label="Joueur qui inspire le plus">
-          <input type="text" name="inspiration" defaultValue={v("inspiration")} className={inputClass} />
+          <input type="text" name="inspiration" {...fp("inspiration")} className={inputClass} />
         </Field>
         <Field label="Objectif cette saison">
-          <textarea name="seasonGoal" rows={2} defaultValue={v("seasonGoal")} className={inputClass} />
+          <textarea name="seasonGoal" rows={2} {...fp("seasonGoal")} className={inputClass} />
         </Field>
       </div>
 
@@ -226,8 +242,8 @@ export default function PlayerForm({ action, teams, defaultValues: d, submitLabe
           <input
             type="text"
             name="highlightVideoUrl"
-            placeholder="https://..."
-            defaultValue={v("highlightVideoUrl")}
+            placeholder={exampleOnly ? String(v("highlightVideoUrl") || "") : "https://..."}
+            {...(exampleOnly ? {} : { defaultValue: v("highlightVideoUrl") })}
             className={inputClass}
           />
         </Field>
