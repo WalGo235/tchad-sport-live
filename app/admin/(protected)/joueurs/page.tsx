@@ -2,6 +2,30 @@ import { createClient } from "@/lib/supabase/server";
 import { deletePlayer, upsertPlayer } from "./actions";
 import PlayerForm from "./PlayerForm";
 
+const NEW_PLAYER_EXAMPLE = {
+  name: "Haroun Djerassem",
+  dateOfBirth: "2001-07-22",
+  birthPlace: "Moundou, Tchad",
+  nationality: "Tchadienne",
+  heightCm: 182,
+  weightKg: 75,
+  preferredFoot: "Droit",
+  position: "Milieu",
+  otherPositions: "Milieu offensif",
+  jerseyNumber: 10,
+  joinedYear: 2019,
+  previousClubs: "Jeunesse Sportive de Koumra (2016–2018)\nCentre de Formation du Sud (2014–2016)",
+  matchesPlayed: 28,
+  goals: 9,
+  assists: 6,
+  yellowCards: 3,
+  redCards: 0,
+  nationalSelections: "Équipe nationale U-20 (2019–2020)\nÉquipe A (depuis 2023)",
+  seasonGoal: "Jouer dans un club européen et participer à la CAN",
+  inspiration: "Riyad Mahrez",
+  email: "haroun.official@espoirmoundou.td",
+};
+
 export default async function AdminJoueursPage() {
   const supabase = await createClient();
   const [{ data: players }, { data: teams }] = await Promise.all([
@@ -15,7 +39,13 @@ export default async function AdminJoueursPage() {
 
       <div className="bg-surface border border-white/10 rounded-lg p-4 mb-10">
         <h2 className="font-semibold mb-4">Nouveau joueur</h2>
-        <PlayerForm action={upsertPlayer.bind(null, null)} teams={teams ?? []} submitLabel="Ajouter" />
+        <PlayerForm
+          action={upsertPlayer.bind(null, null)}
+          teams={teams ?? []}
+          submitLabel="Ajouter"
+          defaultValues={NEW_PLAYER_EXAMPLE}
+          exampleOnly
+        />
       </div>
 
       <h2 className="font-semibold mb-4">Joueurs existants</h2>
