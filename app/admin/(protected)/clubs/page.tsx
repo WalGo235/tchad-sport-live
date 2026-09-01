@@ -91,6 +91,7 @@ export default async function AdminClubsPage() {
             submitLabel="Ajouter"
             requiresValidation={requiresValidation}
             defaultValues={NEW_CLUB_EXAMPLE}
+            exampleOnly
           />
         </div>
       )}
