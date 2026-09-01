@@ -2,6 +2,43 @@ import { createClient } from "@/lib/supabase/server";
 import { deleteClub, upsertClub } from "./actions";
 import ClubForm from "./ClubForm";
 
+const NEW_CLUB_EXAMPLE = {
+  name: "Union Sportive de N'Djamena",
+  abbreviation: "USN",
+  foundedDate: "1984-08-12",
+  city: "N'Djamena",
+  region: "Chari-Baguirmi",
+  country: "Tchad",
+  colors: "Bleu, jaune et blanc",
+  motto: '"Fierté, Force, Fraternité"',
+  postalAddress: "Quartier Moursal, BP 1032, N'Djamena",
+  phone: "+235 66 55 44 33",
+  email: "contact@usn-td.org",
+  website: "www.usn-td.org",
+  socialLinks: "Facebook : fb.com/usn.tchad | Twitter : @usn_td | Instagram : @usn_tchad",
+  president: "Mahamat Idriss Yaya",
+  secretaryGeneral: "Amina Abakar",
+  treasurer: "Saley Moussa",
+  sportsDirector: "Issa Mahamat",
+  headCoach: "Zakaria Bichara",
+  assistantCoaches: "Oumar Sanda, Youssouf Daoud",
+  medicalStaff: "Dr. Fatimé Mbaye",
+  stadiumName: "Stade de la Concorde",
+  stadiumCapacity: 12000,
+  stadiumAddress: "Avenue Gaoui, N'Djamena",
+  trainingCenter: "Centre USN, Quartier Diguel",
+  currentDivision: "Première Division (D1 Tchad)",
+  honors: "Champion du Tchad (2012, 2015)\nCoupe du Tchad (2014, 2016, 2021)",
+  bestHistoricalRanking: "1er place – D1",
+  internationalCompetitions: "Ligue des Champions CAF (2013, 2016)\nCoupe de la CAF (2022)",
+  licensedMembers: 54,
+  sportsSections: "Football masculin, Football U-17, Basketball",
+  seasonGoal: "Remporter le championnat national et se qualifier en CAF",
+  developmentStrategy: "Renforcer la formation locale et l'infrastructure sportive",
+  communityEngagement: "Organisation de tournois scolaires et soutien aux jeunes défavorisés",
+  sponsors: "Airtel Tchad\nBrasseries du Logone\nBanque de l'Habitat du Tchad",
+};
+
 export default async function AdminClubsPage() {
   const supabase = await createClient();
 
@@ -49,7 +86,12 @@ export default async function AdminClubsPage() {
       {!managedTeamId && (
         <div className="bg-surface border border-white/10 rounded-lg p-4 mb-10">
           <h2 className="font-semibold mb-4">Nouveau club</h2>
-          <ClubForm action={upsertClub.bind(null, null)} submitLabel="Ajouter" requiresValidation={requiresValidation} />
+          <ClubForm
+            action={upsertClub.bind(null, null)}
+            submitLabel="Ajouter"
+            requiresValidation={requiresValidation}
+            defaultValues={NEW_CLUB_EXAMPLE}
+          />
         </div>
       )}
 
