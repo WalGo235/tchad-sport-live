@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, Text, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
@@ -6,21 +6,26 @@ import { apiService } from '../services/api';
 export default function FavoritesScreen() {
   const { teams, favorites, removeFavorite, setTeams } = useAppStore();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadTeams();
-  }, []);
-
-  const loadTeams = async () => {
+  const loadTeams = useCallback(async () => {
     try {
-      setLoading(true);
       const data = await apiService.getTeams();
       setTeams(data);
     } catch (error) {
       console.error('Error loading teams:', error);
-    } finally {
-      setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    loadTeams().finally(() => setLoading(false));
+  }, [loadTeams]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadTeams();
+    setRefreshing(false);
   };
 
   const favoriteTeams = teams.filter(team => favorites.includes(team.id));
@@ -67,6 +72,8 @@ export default function FavoritesScreen() {
           renderItem={renderFavoriteTeam}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
         />
       )}
     </View>
