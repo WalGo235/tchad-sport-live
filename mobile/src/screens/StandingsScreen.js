@@ -4,8 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
 import { supabase } from '../config/supabase';
+import { brand } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function StandingsScreen({ navigation }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { standings, setStandings } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -47,7 +51,7 @@ export default function StandingsScreen({ navigation }) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.container}>
-          <ActivityIndicator size="large" color="#0052CC" />
+          <ActivityIndicator size="large" color={brand.blue} />
         </View>
       </SafeAreaView>
     );
@@ -101,23 +105,25 @@ export default function StandingsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0052CC' },
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { backgroundColor: '#0052CC', padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  teamsLink: { fontSize: 13, fontWeight: '600', color: '#FCD34D' },
-  tableHeader: { flexDirection: 'row', backgroundColor: '#333', padding: 10, alignItems: 'center' },
-  headerPos: { width: 30, color: '#fff', fontWeight: 'bold', fontSize: 12 },
-  headerTeam: { flex: 1, color: '#fff', fontWeight: 'bold', fontSize: 12 },
-  headerStats: { flexDirection: 'row', width: 130 },
-  headerStat: { width: 25, color: '#fff', fontWeight: 'bold', fontSize: 11, textAlign: 'center' },
-  headerPoints: { width: 30, color: '#fff', fontWeight: 'bold', fontSize: 11, textAlign: 'center' },
-  row: { flexDirection: 'row', padding: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee', alignItems: 'center' },
-  rowEven: { backgroundColor: '#f9f9f9' },
-  position: { width: 30, fontWeight: 'bold', color: '#0052CC', fontSize: 12 },
-  teamName: { flex: 1, fontSize: 13, fontWeight: '500', color: '#333' },
-  stats: { flexDirection: 'row', width: 130 },
-  stat: { width: 25, textAlign: 'center', fontSize: 12, color: '#666' },
-  points: { width: 30, textAlign: 'center', fontSize: 12, fontWeight: 'bold', color: '#0052CC' },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: brand.blue },
+    container: { flex: 1, backgroundColor: colors.background },
+    header: { backgroundColor: brand.blue, padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
+    teamsLink: { fontSize: 13, fontWeight: '600', color: brand.gold },
+    tableHeader: { flexDirection: 'row', backgroundColor: brand.navy, padding: 10, alignItems: 'center' },
+    headerPos: { width: 30, color: '#fff', fontWeight: 'bold', fontSize: 12 },
+    headerTeam: { flex: 1, color: '#fff', fontWeight: 'bold', fontSize: 12 },
+    headerStats: { flexDirection: 'row', width: 130 },
+    headerStat: { width: 25, color: '#fff', fontWeight: 'bold', fontSize: 11, textAlign: 'center' },
+    headerPoints: { width: 30, color: '#fff', fontWeight: 'bold', fontSize: 11, textAlign: 'center' },
+    row: { flexDirection: 'row', padding: 10, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border, alignItems: 'center' },
+    rowEven: { backgroundColor: colors.background },
+    position: { width: 30, fontWeight: 'bold', color: brand.blue, fontSize: 12 },
+    teamName: { flex: 1, fontSize: 13, fontWeight: '500', color: colors.textPrimary },
+    stats: { flexDirection: 'row', width: 130 },
+    stat: { width: 25, textAlign: 'center', fontSize: 12, color: colors.textSecondary },
+    points: { width: 30, textAlign: 'center', fontSize: 12, fontWeight: 'bold', color: brand.blue },
+  });
+}
