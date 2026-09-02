@@ -3,10 +3,13 @@ import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Switch, Alert } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { supabase } from '../config/supabase';
+import { brand } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function SettingsScreen({ navigation }) {
+  const { colors, isDark, setDarkMode } = useTheme();
+  const styles = createStyles(colors);
   const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
   const [language, setLanguage] = useState('fr');
   const user = useAppStore((state) => state.user);
 
@@ -46,7 +49,7 @@ export default function SettingsScreen({ navigation }) {
             <Switch
               value={notifications}
               onValueChange={setNotifications}
-              trackColor={{ false: '#ccc', true: '#0052CC' }}
+              trackColor={{ false: colors.border, true: brand.blue }}
             />
           </View>
         </View>
@@ -59,9 +62,9 @@ export default function SettingsScreen({ navigation }) {
               <Text style={styles.settingDescription}>Thème sombre pour les yeux</Text>
             </View>
             <Switch
-              value={darkMode}
+              value={isDark}
               onValueChange={setDarkMode}
-              trackColor={{ false: '#ccc', true: '#0052CC' }}
+              trackColor={{ false: colors.border, true: brand.blue }}
             />
           </View>
         </View>
@@ -129,31 +132,33 @@ export default function SettingsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0052CC' },
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { backgroundColor: '#0052CC', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  section: { backgroundColor: '#fff', marginTop: 10, padding: 15, borderTopWidth: 1, borderTopColor: '#eee' },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#0052CC', marginBottom: 15 },
-  sectionTitleInline: { fontSize: 16, fontWeight: 'bold', color: '#0052CC' },
-  linkRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
-  linkLabel: { fontSize: 14, fontWeight: '600', color: '#333' },
-  linkArrow: { fontSize: 16, color: '#0052CC', fontWeight: 'bold' },
-  settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  settingLabel: { fontSize: 14, fontWeight: '600', color: '#333' },
-  settingDescription: { fontSize: 12, color: '#999', marginTop: 3 },
-  languageOptions: { flexDirection: 'row', justifyContent: 'space-between' },
-  languageButton: { flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRadius: 6, borderWidth: 1, borderColor: '#ddd', marginHorizontal: 5, alignItems: 'center' },
-  languageButtonActive: { backgroundColor: '#0052CC', borderColor: '#0052CC' },
-  languageText: { fontSize: 12, color: '#666' },
-  languageTextActive: { color: '#fff', fontWeight: 'bold' },
-  accountEmail: { fontSize: 14, color: '#333', marginBottom: 12, fontWeight: '600' },
-  button: { backgroundColor: '#0052CC', paddingVertical: 12, borderRadius: 6, alignItems: 'center', marginVertical: 8 },
-  buttonDanger: { backgroundColor: '#DC2626' },
-  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-  buttonSecondary: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#0052CC' },
-  buttonTextSecondary: { color: '#0052CC', fontWeight: 'bold', fontSize: 14 },
-  footer: { padding: 20, alignItems: 'center' },
-  footerText: { fontSize: 12, color: '#999', textAlign: 'center' },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: brand.blue },
+    container: { flex: 1, backgroundColor: colors.background },
+    header: { backgroundColor: brand.blue, padding: 20 },
+    title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
+    section: { backgroundColor: colors.card, marginTop: 10, padding: 15, borderTopWidth: 1, borderTopColor: colors.border },
+    sectionTitle: { fontSize: 16, fontWeight: 'bold', color: brand.blue, marginBottom: 15 },
+    sectionTitleInline: { fontSize: 16, fontWeight: 'bold', color: brand.blue },
+    linkRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
+    linkLabel: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+    linkArrow: { fontSize: 16, color: brand.blue, fontWeight: 'bold' },
+    settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
+    settingLabel: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+    settingDescription: { fontSize: 12, color: colors.textMuted, marginTop: 3 },
+    languageOptions: { flexDirection: 'row', justifyContent: 'space-between' },
+    languageButton: { flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRadius: 6, borderWidth: 1, borderColor: colors.inputBorder, marginHorizontal: 5, alignItems: 'center' },
+    languageButtonActive: { backgroundColor: brand.blue, borderColor: brand.blue },
+    languageText: { fontSize: 12, color: colors.textSecondary },
+    languageTextActive: { color: '#fff', fontWeight: 'bold' },
+    accountEmail: { fontSize: 14, color: colors.textPrimary, marginBottom: 12, fontWeight: '600' },
+    button: { backgroundColor: brand.blue, paddingVertical: 12, borderRadius: 6, alignItems: 'center', marginVertical: 8 },
+    buttonDanger: { backgroundColor: brand.red },
+    buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+    buttonSecondary: { backgroundColor: colors.card, borderWidth: 1, borderColor: brand.blue },
+    buttonTextSecondary: { color: brand.blue, fontWeight: 'bold', fontSize: 14 },
+    footer: { padding: 20, alignItems: 'center' },
+    footerText: { fontSize: 12, color: colors.textMuted, textAlign: 'center' },
+  });
+}
