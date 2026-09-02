@@ -1,27 +1,39 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, Text, ActivityIndicator } from 'react-native';
 import { apiService } from '../services/api';
+import { supabase } from '../config/supabase';
 
 export default function MatchDetailScreen({ route }) {
   const { matchId } = route.params;
   const [match, setMatch] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadMatch();
-  }, [matchId]);
-
-  const loadMatch = async () => {
+  const loadMatch = useCallback(async () => {
     try {
-      setLoading(true);
       const data = await apiService.getMatchById(matchId);
       setMatch(data);
     } catch (error) {
       console.error('Error loading match:', error);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [matchId]);
+
+  useEffect(() => {
+    setLoading(true);
+    loadMatch().finally(() => setLoading(false));
+  }, [loadMatch]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`match-detail-${matchId}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${matchId}` }, () => {
+        loadMatch();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [matchId, loadMatch]);
 
   if (loading) {
     return (
@@ -52,7 +64,7 @@ export default function MatchDetailScreen({ route }) {
 
         <View style={styles.teamsRow}>
           <Text style={styles.teamName}>{match.home_team?.name}</Text>
-          {match.status === 'finished' ? (
+          {match.status === 'finished' || match.status === 'live' ? (
             <Text style={styles.score}>{match.home_score} - {match.away_score}</Text>
           ) : (
             <Text style={styles.time}>{new Date(match.match_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</Text>
