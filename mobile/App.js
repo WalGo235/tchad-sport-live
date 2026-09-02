@@ -19,6 +19,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import MatchDetailScreen from './src/screens/MatchDetailScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
+import AboutScreen from './src/screens/AboutScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -137,6 +138,11 @@ export default function App() {
               name="SignUp"
               component={SignUpScreen}
               options={{ ...stackHeaderOptions, title: 'Créer un compte' }}
+            />
+            <Stack.Screen
+              name="About"
+              component={AboutScreen}
+              options={{ ...stackHeaderOptions, title: 'À propos' }}
             />
           </Stack.Navigator>
         </NavigationContainer>
