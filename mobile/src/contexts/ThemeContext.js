@@ -1,55 +1,32 @@
-export const lightColors = {
-  background: '#f5f5f5',
-  card: '#ffffff',
-  textPrimary: '#333333',
-  textSecondary: '#666666',
-  textMuted: '#999999',
-  border: '#eeeeee',
-  inputBg: '#f5f5f5',
-  inputBorder: '#dddddd',
-};
+import React, { createContext, useContext, useEffect } from 'react';
+import { Appearance } from 'react-native';
+import { lightColors, darkColors } from '../theme';
+import { useAppStore } from '../store/appStore';
 
-export const darkColors = {
-  background: '#0E1420',
-  card: '#1A2333',
-  textPrimary: '#F0F2F5',
-  textSecondary: '#B0B8C4',
-  textMuted: '#7C8697',
-  border: '#2A3548',
-  inputBg: '#1F2937',
-  inputBorder: '#374151',
-};
+const ThemeContext = createContext({ colors: lightColors, isDark: false, setDarkMode: () => {} });
 
-// Couleurs de marque : identiques en mode clair et sombre
-export const brand = {
-  navy: '#0F1E36',
-  blue: '#0052CC',
-  gold: '#FCD34D',
-  red: '#DC2626',
-  green: '#10B981',
-};
+export function ThemeProvider({ children }) {
+  const darkMode = useAppStore((state) => state.darkMode);
+  const darkModeInitialized = useAppStore((state) => state.darkModeInitialized);
+  const setDarkMode = useAppStore((state) => state.setDarkMode);
+  const setDarkModeInitialized = useAppStore((state) => state.setDarkModeInitialized);
 
-// Alias conservés pour compatibilité avec l'écran d'accueil déjà en place
-export const colors = { ...lightColors, navy: brand.navy, gold: brand.gold, surface: lightColors.card };
+  useEffect(() => {
+    if (!darkModeInitialized) {
+      setDarkMode(Appearance.getColorScheme() === 'dark');
+      setDarkModeInitialized(true);
+    }
+  }, [darkModeInitialized]);
 
-export const radius = {
-  sm: 8,
-  md: 16,
-  lg: 24,
-};
+  const colors = darkMode ? darkColors : lightColors;
 
-export const shadow = {
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.08,
-  shadowRadius: 12,
-  elevation: 3,
-};
+  return (
+    <ThemeContext.Provider value={{ colors, isDark: darkMode, setDarkMode }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
 
-export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
-};
+export function useTheme() {
+  return useContext(ThemeContext);
+}
