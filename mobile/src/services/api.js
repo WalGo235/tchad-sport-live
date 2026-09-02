@@ -46,6 +46,12 @@ export const apiService = {
     return data;
   },
 
+  async getArticleById(id) {
+    const { data, error } = await supabase.from('articles').select('*').eq('id', id).single();
+    if (error) throw error;
+    return data;
+  },
+
   async getStandings() {
     const { data, error } = await supabase
       .from('standings')
@@ -53,5 +59,78 @@ export const apiService = {
       .order('points', { ascending: false });
     if (error) throw error;
     return data;
+  },
+
+  // Commentaires (polymorphe : target_type = 'match' | 'article' | 'comment' pour les likes)
+  async getComments(targetType, targetId) {
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('target_type', targetType)
+      .eq('target_id', targetId)
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return data;
+  },
+
+  async postComment(targetType, targetId, content) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Connecte-toi pour commenter.');
+    const authorName = user.email ? user.email.split('@')[0] : 'Utilisateur';
+    const { data, error } = await supabase
+      .from('comments')
+      .insert({
+        target_type: targetType,
+        target_id: targetId,
+        author_id: user.id,
+        author_name: authorName,
+        content,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteComment(commentId) {
+    const { error } = await supabase.from('comments').delete().eq('id', commentId);
+    if (error) throw error;
+  },
+
+  // Likes (polymorphe, réutilisé pour commentaires/sujets/réponses)
+  async getLikesForTargets(targetType, targetIds) {
+    if (!targetIds.length) return [];
+    const { data, error } = await supabase
+      .from('forum_likes')
+      .select('*')
+      .eq('target_type', targetType)
+      .in('target_id', targetIds);
+    if (error) throw error;
+    return data;
+  },
+
+  async toggleLike(targetType, targetId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Connecte-toi pour aimer.');
+    const { data: existing, error: fetchError } = await supabase
+      .from('forum_likes')
+      .select('id')
+      .eq('target_type', targetType)
+      .eq('target_id', targetId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (fetchError) throw fetchError;
+
+    if (existing) {
+      const { error } = await supabase.from('forum_likes').delete().eq('id', existing.id);
+      if (error) throw error;
+      return false;
+    } else {
+      const { error } = await supabase
+        .from('forum_likes')
+        .insert({ target_type: targetType, target_id: targetId, user_id: user.id });
+      if (error) throw error;
+      return true;
+    }
   },
 };
