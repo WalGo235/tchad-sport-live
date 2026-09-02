@@ -62,6 +62,7 @@ export default function SignUpScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="#999"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -70,6 +71,7 @@ export default function SignUpScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Mot de passe (6 caractères minimum)"
+        placeholderTextColor="#999"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -91,7 +93,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 26, fontWeight: 'bold', color: '#0052CC', marginBottom: 24, textAlign: 'center' },
   info: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 24, lineHeight: 20 },
   error: { color: '#DC2626', marginBottom: 12, textAlign: 'center' },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 14, marginBottom: 12, fontSize: 15 },
+  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 14, marginBottom: 12, fontSize: 15, color: '#333' },
   button: { backgroundColor: '#0052CC', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 8 },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   link: { color: '#0052CC', textAlign: 'center', marginTop: 20, fontSize: 13 },
