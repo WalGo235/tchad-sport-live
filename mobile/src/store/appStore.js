@@ -11,6 +11,8 @@ export const useAppStore = create(
       teams: [],
       news: [],
       standings: [],
+      darkMode: false,
+      darkModeInitialized: false,
 
       setUser: (user) => set({ user }),
       addFavorite: (teamId) => set((state) => ({
@@ -23,11 +25,17 @@ export const useAppStore = create(
       setTeams: (teams) => set({ teams }),
       setNews: (news) => set({ news }),
       setStandings: (standings) => set({ standings }),
+      setDarkMode: (darkMode) => set({ darkMode }),
+      setDarkModeInitialized: (darkModeInitialized) => set({ darkModeInitialized }),
     }),
     {
       name: 'tchadsportlive-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ favorites: state.favorites }),
+      partialize: (state) => ({
+        favorites: state.favorites,
+        darkMode: state.darkMode,
+        darkModeInitialized: state.darkModeInitialized,
+      }),
     }
   )
 );
