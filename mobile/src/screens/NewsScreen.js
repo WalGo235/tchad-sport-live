@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, Text, ActivityIndicator, FlatList } from 'react-native';
+import { View, StyleSheet, Text, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
 
-export default function NewsScreen() {
+export default function NewsScreen({ navigation }) {
   const { news, setNews } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -38,7 +38,7 @@ export default function NewsScreen() {
   }
 
   const renderNewsCard = ({ item }) => (
-    <View style={styles.newsCard}>
+    <TouchableOpacity style={styles.newsCard} onPress={() => navigation.navigate('ArticleDetail', { articleId: item.id })}>
       <View style={styles.newsHeader}>
         <Text style={styles.newsTitle}>{item.title}</Text>
       </View>
@@ -48,7 +48,7 @@ export default function NewsScreen() {
       <View style={styles.newsFooter}>
         <Text style={styles.newsDate}>{new Date(item.published_at).toLocaleDateString('fr-FR')}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
