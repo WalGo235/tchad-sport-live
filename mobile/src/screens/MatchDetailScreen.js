@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, Text, ActivityIndicator } from 'react-native';
 import { apiService } from '../services/api';
 import { supabase } from '../config/supabase';
+import CommentSection from '../components/CommentSection';
 
 export default function MatchDetailScreen({ route }) {
   const { matchId } = route.params;
@@ -81,6 +82,8 @@ export default function MatchDetailScreen({ route }) {
           <Text style={styles.infoValue}>{match.venue || 'Non renseigné'}</Text>
         </View>
       </View>
+
+      <CommentSection targetType="match" targetId={match.id} />
     </ScrollView>
   );
 }
