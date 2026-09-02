@@ -1,22 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, ScrollView, StyleSheet, Text, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
+import { supabase } from '../config/supabase';
 import { colors, radius, shadow, spacing } from '../theme';
 
 export default function HomeScreen({ navigation }) {
   const { matches, news, setMatches, setNews } = useAppStore();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
-      setLoading(true);
       const [matchesData, newsData] = await Promise.all([
         apiService.getMatches(),
         apiService.getNews(),
@@ -25,9 +22,31 @@ export default function HomeScreen({ navigation }) {
       setNews(newsData);
     } catch (error) {
       console.error('Error loading data:', error);
-    } finally {
-      setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    loadData().finally(() => setLoading(false));
+  }, [loadData]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('home-matches-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
+        loadData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadData]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
   };
 
   if (loading) {
@@ -47,7 +66,11 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.navy} colors={[colors.navy]} />}
+      >
         <Text style={styles.appTitle}>TchadSportLive</Text>
         <Text style={styles.appSubtitle}>Division 1 de Football Tchadien</Text>
 
