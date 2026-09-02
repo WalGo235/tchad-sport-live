@@ -97,7 +97,56 @@ export const apiService = {
     if (error) throw error;
   },
 
-  // Likes (polymorphe, réutilisé pour commentaires/sujets/réponses)
+  // Forum libre
+  async getForumTopics() {
+    const { data, error } = await supabase.from('forum_topics').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  async getForumTopicById(id) {
+    const { data, error } = await supabase.from('forum_topics').select('*').eq('id', id).single();
+    if (error) throw error;
+    return data;
+  },
+
+  async postForumTopic(title, content) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Connecte-toi pour publier un sujet.');
+    const authorName = user.email ? user.email.split('@')[0] : 'Utilisateur';
+    const { data, error } = await supabase
+      .from('forum_topics')
+      .insert({ author_id: user.id, author_name: authorName, title, content })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async getForumReplies(topicId) {
+    const { data, error } = await supabase
+      .from('forum_replies')
+      .select('*')
+      .eq('topic_id', topicId)
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return data;
+  },
+
+  async postForumReply(topicId, content) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Connecte-toi pour répondre.');
+    const authorName = user.email ? user.email.split('@')[0] : 'Utilisateur';
+    const { data, error } = await supabase
+      .from('forum_replies')
+      .insert({ topic_id: topicId, author_id: user.id, author_name: authorName, content })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  // Likes (polymorphe : 'comment' | 'topic' | 'reply')
   async getLikesForTargets(targetType, targetIds) {
     if (!targetIds.length) return [];
     const { data, error } = await supabase
