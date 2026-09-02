@@ -1,26 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, Text, ActivityIndicator, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
 
 export default function NewsScreen() {
   const { news, setNews } = useAppStore();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadNews();
-  }, []);
-
-  const loadNews = async () => {
+  const loadNews = useCallback(async () => {
     try {
-      setLoading(true);
       const data = await apiService.getNews();
       setNews(data);
     } catch (error) {
       console.error('Error loading news:', error);
-    } finally {
-      setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    loadNews().finally(() => setLoading(false));
+  }, [loadNews]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadNews();
+    setRefreshing(false);
   };
 
   if (loading) {
@@ -46,22 +52,27 @@ export default function NewsScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>📰 Actualités</Text>
-      </View>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>📰 Actualités</Text>
+        </View>
 
-      <FlatList
-        data={news}
-        renderItem={renderNewsCard}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listContent}
-      />
-    </View>
+        <FlatList
+          data={news}
+          renderItem={renderNewsCard}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.listContent}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#0052CC' },
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { backgroundColor: '#0052CC', padding: 20 },
   title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
