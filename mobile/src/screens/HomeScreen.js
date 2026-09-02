@@ -124,7 +124,11 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
           </View>
           {news.slice(0, 5).map(article => (
-            <TouchableOpacity key={article.id} style={styles.newsRow}>
+            <TouchableOpacity
+              key={article.id}
+              style={styles.newsRow}
+              onPress={() => navigation.navigate('ArticleDetail', { articleId: article.id })}
+            >
               {article.cover_image_url ? (
                 <Image source={{ uri: article.cover_image_url }} style={styles.newsThumb} contentFit="cover" />
               ) : (
