@@ -6,7 +6,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationBar } from 'expo-navigation-bar';
-import { colors } from './src/theme';
+import { StatusBar } from 'expo-status-bar';
+import { brand } from './src/theme';
+import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
 import { supabase } from './src/config/supabase';
 import { useAppStore } from './src/store/appStore';
 
@@ -31,7 +33,7 @@ const Tab = createBottomTabNavigator();
 
 const stackHeaderOptions = {
   headerShown: true,
-  headerStyle: { backgroundColor: colors.navy },
+  headerStyle: { backgroundColor: brand.navy },
   headerTintColor: '#fff',
 };
 
@@ -40,10 +42,10 @@ function BottomTabNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.gold,
+        tabBarActiveTintColor: brand.gold,
         tabBarInactiveTintColor: '#8891A5',
         tabBarStyle: {
-          backgroundColor: colors.navy,
+          backgroundColor: brand.navy,
           borderTopWidth: 0,
           paddingBottom: 8,
           paddingTop: 8,
@@ -91,6 +93,76 @@ function BottomTabNavigator() {
   );
 }
 
+function AppContent() {
+  const { isDark } = useTheme();
+
+  return (
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="MainApp" component={BottomTabNavigator} />
+          <Stack.Screen
+            name="MatchDetail"
+            component={MatchDetailScreen}
+            options={{ ...stackHeaderOptions, title: 'Détails du Match' }}
+          />
+          <Stack.Screen
+            name="ArticleDetail"
+            component={ArticleDetailScreen}
+            options={{ ...stackHeaderOptions, title: 'Actualité' }}
+          />
+          <Stack.Screen
+            name="Teams"
+            component={TeamsScreen}
+            options={{ ...stackHeaderOptions, title: 'Équipes' }}
+          />
+          <Stack.Screen
+            name="Favorites"
+            component={FavoritesScreen}
+            options={{ ...stackHeaderOptions, title: 'Mes Favoris' }}
+          />
+          <Stack.Screen
+            name="News"
+            component={NewsScreen}
+            options={{ ...stackHeaderOptions, title: 'Actualités' }}
+          />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ ...stackHeaderOptions, title: 'Connexion' }}
+          />
+          <Stack.Screen
+            name="SignUp"
+            component={SignUpScreen}
+            options={{ ...stackHeaderOptions, title: 'Créer un compte' }}
+          />
+          <Stack.Screen
+            name="About"
+            component={AboutScreen}
+            options={{ ...stackHeaderOptions, title: 'À propos' }}
+          />
+          <Stack.Screen
+            name="Community"
+            component={CommunityScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="NewTopic"
+            component={NewTopicScreen}
+            options={{ ...stackHeaderOptions, title: 'Nouveau sujet' }}
+          />
+          <Stack.Screen
+            name="TopicDetail"
+            component={TopicDetailScreen}
+            options={{ ...stackHeaderOptions, title: 'Discussion' }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </>
+  );
+}
+
 export default function App() {
   const setUser = useAppStore((state) => state.setUser);
 
@@ -111,68 +183,11 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationBar hidden={true} />
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <NavigationContainer>
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="MainApp" component={BottomTabNavigator} />
-            <Stack.Screen
-              name="MatchDetail"
-              component={MatchDetailScreen}
-              options={{ ...stackHeaderOptions, title: 'Détails du Match' }}
-            />
-            <Stack.Screen
-              name="ArticleDetail"
-              component={ArticleDetailScreen}
-              options={{ ...stackHeaderOptions, title: 'Actualité' }}
-            />
-            <Stack.Screen
-              name="Teams"
-              component={TeamsScreen}
-              options={{ ...stackHeaderOptions, title: 'Équipes' }}
-            />
-            <Stack.Screen
-              name="Favorites"
-              component={FavoritesScreen}
-              options={{ ...stackHeaderOptions, title: 'Mes Favoris' }}
-            />
-            <Stack.Screen
-              name="News"
-              component={NewsScreen}
-              options={{ ...stackHeaderOptions, title: 'Actualités' }}
-            />
-            <Stack.Screen
-              name="Login"
-              component={LoginScreen}
-              options={{ ...stackHeaderOptions, title: 'Connexion' }}
-            />
-            <Stack.Screen
-              name="SignUp"
-              component={SignUpScreen}
-              options={{ ...stackHeaderOptions, title: 'Créer un compte' }}
-            />
-            <Stack.Screen
-              name="About"
-              component={AboutScreen}
-              options={{ ...stackHeaderOptions, title: 'À propos' }}
-            />
-            <Stack.Screen
-              name="Community"
-              component={CommunityScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="NewTopic"
-              component={NewTopicScreen}
-              options={{ ...stackHeaderOptions, title: 'Nouveau sujet' }}
-            />
-            <Stack.Screen
-              name="TopicDetail"
-              component={TopicDetailScreen}
-              options={{ ...stackHeaderOptions, title: 'Discussion' }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </GestureHandlerRootView>
+      <ThemeProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <AppContent />
+        </GestureHandlerRootView>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
