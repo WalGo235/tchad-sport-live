@@ -115,15 +115,10 @@ export default function SettingsScreen({ navigation }) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>À propos</Text>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Version</Text>
-            <Text style={styles.infoValue}>1.0.0</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Développeur</Text>
-            <Text style={styles.infoValue}>TchadSportLive</Text>
-          </View>
+          <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate('About')}>
+            <Text style={styles.sectionTitleInline}>À propos</Text>
+            <Text style={styles.linkArrow}>→</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
@@ -141,6 +136,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   section: { backgroundColor: '#fff', marginTop: 10, padding: 15, borderTopWidth: 1, borderTopColor: '#eee' },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#0052CC', marginBottom: 15 },
+  sectionTitleInline: { fontSize: 16, fontWeight: 'bold', color: '#0052CC' },
   linkRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
   linkLabel: { fontSize: 14, fontWeight: '600', color: '#333' },
   linkArrow: { fontSize: 16, color: '#0052CC', fontWeight: 'bold' },
@@ -158,9 +154,6 @@ const styles = StyleSheet.create({
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
   buttonSecondary: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#0052CC' },
   buttonTextSecondary: { color: '#0052CC', fontWeight: 'bold', fontSize: 14 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  infoLabel: { fontSize: 14, color: '#666' },
-  infoValue: { fontSize: 14, fontWeight: '600', color: '#333' },
   footer: { padding: 20, alignItems: 'center' },
   footerText: { fontSize: 12, color: '#999', textAlign: 'center' },
 });
