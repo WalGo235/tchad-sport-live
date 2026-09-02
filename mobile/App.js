@@ -18,6 +18,7 @@ import NewsScreen from './src/screens/NewsScreen';
 import FavoritesScreen from './src/screens/FavoritesScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import MatchDetailScreen from './src/screens/MatchDetailScreen';
+import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import AboutScreen from './src/screens/AboutScreen';
@@ -115,6 +116,11 @@ export default function App() {
               name="MatchDetail"
               component={MatchDetailScreen}
               options={{ ...stackHeaderOptions, title: 'Détails du Match' }}
+            />
+            <Stack.Screen
+              name="ArticleDetail"
+              component={ArticleDetailScreen}
+              options={{ ...stackHeaderOptions, title: 'Actualité' }}
             />
             <Stack.Screen
               name="Teams"
