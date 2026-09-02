@@ -1,27 +1,46 @@
-import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, ScrollView, StyleSheet, Text, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
+import { supabase } from '../config/supabase';
 
 export default function MatchesScreen({ navigation }) {
   const { matches, setMatches } = useAppStore();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadMatches();
-  }, []);
-
-  const loadMatches = async () => {
+  const loadMatches = useCallback(async () => {
     try {
-      setLoading(true);
       const data = await apiService.getMatches();
       setMatches(data);
     } catch (error) {
       console.error('Error loading matches:', error);
-    } finally {
-      setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    loadMatches().finally(() => setLoading(false));
+  }, [loadMatches]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('matches-list-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
+        loadMatches();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadMatches]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadMatches();
+    setRefreshing(false);
   };
 
   if (loading) {
@@ -45,7 +64,10 @@ export default function MatchesScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0052CC" colors={['#0052CC']} />}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>📅 Calendrier des Matchs</Text>
         </View>
