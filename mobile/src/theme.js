@@ -1,16 +1,36 @@
-export const colors = {
-  background: '#F9F9F9',
-  surface: '#FFFFFF',
+export const lightColors = {
+  background: '#f5f5f5',
+  card: '#ffffff',
+  textPrimary: '#333333',
+  textSecondary: '#666666',
+  textMuted: '#999999',
+  border: '#eeeeee',
+  inputBg: '#f5f5f5',
+  inputBorder: '#dddddd',
+};
+
+export const darkColors = {
+  background: '#0E1420',
+  card: '#1A2333',
+  textPrimary: '#F0F2F5',
+  textSecondary: '#B0B8C4',
+  textMuted: '#7C8697',
+  border: '#2A3548',
+  inputBg: '#1F2937',
+  inputBorder: '#374151',
+};
+
+// Couleurs de marque : identiques en mode clair et sombre
+export const brand = {
   navy: '#0F1E36',
-  navyLight: '#1C3A5E',
+  blue: '#0052CC',
   gold: '#FCD34D',
   red: '#DC2626',
   green: '#10B981',
-  textPrimary: '#0F1E36',
-  textSecondary: '#6B7280',
-  textMuted: '#9CA3AF',
-  border: '#ECECEC',
 };
+
+// Alias conservés pour compatibilité avec l'écran d'accueil déjà en place
+export const colors = { ...lightColors, navy: brand.navy, gold: brand.gold, surface: lightColors.card };
 
 export const radius = {
   sm: 8,
@@ -19,7 +39,7 @@ export const radius = {
 };
 
 export const shadow = {
-  shadowColor: '#0F1E36',
+  shadowColor: '#000',
   shadowOffset: { width: 0, height: 4 },
   shadowOpacity: 0.08,
   shadowRadius: 12,
