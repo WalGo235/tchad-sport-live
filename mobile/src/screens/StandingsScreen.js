@@ -1,27 +1,46 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, Text, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
+import { supabase } from '../config/supabase';
 
 export default function StandingsScreen({ navigation }) {
   const { standings, setStandings } = useAppStore();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadStandings();
-  }, []);
-
-  const loadStandings = async () => {
+  const loadStandings = useCallback(async () => {
     try {
-      setLoading(true);
       const data = await apiService.getStandings();
       setStandings(data);
     } catch (error) {
       console.error('Error loading standings:', error);
-    } finally {
-      setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    loadStandings().finally(() => setLoading(false));
+  }, [loadStandings]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('standings-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'standings' }, () => {
+        loadStandings();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadStandings]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadStandings();
+    setRefreshing(false);
   };
 
   if (loading) {
@@ -74,6 +93,8 @@ export default function StandingsScreen({ navigation }) {
           data={standings}
           renderItem={renderStandingRow}
           keyExtractor={(item) => item.id.toString()}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
         />
       </View>
     </SafeAreaView>
