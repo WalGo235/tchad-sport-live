@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NavigationBar } from 'expo-navigation-bar';
 import { colors } from './src/theme';
 import { supabase } from './src/config/supabase';
 import { useAppStore } from './src/store/appStore';
@@ -105,6 +106,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
+      <NavigationBar hidden={true} />
       <GestureHandlerRootView style={{ flex: 1 }}>
         <NavigationContainer>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
