@@ -5,9 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
 import { supabase } from '../config/supabase';
-import { colors, radius, shadow, spacing } from '../theme';
+import { brand, radius, shadow, spacing } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function HomeScreen({ navigation }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { matches, news, setMatches, setNews } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -53,7 +56,7 @@ export default function HomeScreen({ navigation }) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.navy} />
+          <ActivityIndicator size="large" color={brand.navy} />
         </View>
       </SafeAreaView>
     );
@@ -69,7 +72,7 @@ export default function HomeScreen({ navigation }) {
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.navy} colors={[colors.navy]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={brand.navy} colors={[brand.navy]} />}
       >
         <Text style={styles.appTitle}>TchadSportLive</Text>
         <Text style={styles.appSubtitle}>Division 1 de Football Tchadien</Text>
@@ -157,71 +160,73 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.background },
-  container: { flex: 1, backgroundColor: colors.background },
-  loadingContainer: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
-  content: { padding: spacing.lg, paddingBottom: spacing.xl },
-  appTitle: { fontSize: 26, fontWeight: '700', color: colors.navy },
-  appSubtitle: { fontSize: 13, fontWeight: '500', color: colors.textSecondary, marginTop: 2, marginBottom: spacing.lg },
-  section: { marginBottom: spacing.lg },
-  sectionTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: colors.navy, textTransform: 'uppercase', letterSpacing: 0.5 },
-  seeAllLink: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
-  nextMatchCard: {
-    backgroundColor: colors.navy,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    ...shadow,
-  },
-  nextMatchTeam: { flex: 1, alignItems: 'center' },
-  teamLogo: { width: 48, height: 48, marginBottom: spacing.sm },
-  teamLogoPlaceholder: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.15)', marginBottom: spacing.sm },
-  nextMatchTeamName: { color: '#fff', fontSize: 13, fontWeight: '600', textAlign: 'center' },
-  nextMatchCenter: { alignItems: 'center', paddingHorizontal: spacing.sm },
-  vsLabel: { color: colors.gold, fontSize: 12, fontWeight: '700', marginBottom: spacing.xs },
-  nextMatchDate: { color: '#fff', fontSize: 13, fontWeight: '600', textTransform: 'capitalize' },
-  nextMatchTime: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
-  emptyCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
-    ...shadow,
-  },
-  emptyText: { color: colors.textMuted, fontSize: 13 },
-  communityCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.gold,
-    ...shadow,
-  },
-  communityIcon: { fontSize: 26, marginRight: spacing.md },
-  communityTextBlock: { flex: 1 },
-  communityTitle: { fontSize: 15, fontWeight: '700', color: colors.navy },
-  communitySubtitle: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
-  communityArrow: { fontSize: 18, color: colors.textSecondary },
-  newsRow: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.sm,
-    marginBottom: spacing.sm,
-    alignItems: 'center',
-    ...shadow,
-  },
-  newsThumb: { width: 56, height: 56, borderRadius: radius.sm, backgroundColor: colors.border },
-  newsThumbPlaceholder: { alignItems: 'center', justifyContent: 'center' },
-  newsThumbIcon: { fontSize: 20 },
-  newsTextBlock: { flex: 1, marginLeft: spacing.md },
-  newsTitle: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, lineHeight: 19 },
-  newsDate: { fontSize: 11, color: colors.textMuted, marginTop: 4 },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: colors.background },
+    container: { flex: 1, backgroundColor: colors.background },
+    loadingContainer: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
+    content: { padding: spacing.lg, paddingBottom: spacing.xl },
+    appTitle: { fontSize: 26, fontWeight: '700', color: brand.navy },
+    appSubtitle: { fontSize: 13, fontWeight: '500', color: colors.textSecondary, marginTop: 2, marginBottom: spacing.lg },
+    section: { marginBottom: spacing.lg },
+    sectionTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
+    sectionTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.5 },
+    seeAllLink: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
+    nextMatchCard: {
+      backgroundColor: brand.navy,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      ...shadow,
+    },
+    nextMatchTeam: { flex: 1, alignItems: 'center' },
+    teamLogo: { width: 48, height: 48, marginBottom: spacing.sm },
+    teamLogoPlaceholder: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.15)', marginBottom: spacing.sm },
+    nextMatchTeamName: { color: '#fff', fontSize: 13, fontWeight: '600', textAlign: 'center' },
+    nextMatchCenter: { alignItems: 'center', paddingHorizontal: spacing.sm },
+    vsLabel: { color: brand.gold, fontSize: 12, fontWeight: '700', marginBottom: spacing.xs },
+    nextMatchDate: { color: '#fff', fontSize: 13, fontWeight: '600', textTransform: 'capitalize' },
+    nextMatchTime: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
+    emptyCard: {
+      backgroundColor: colors.card,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      alignItems: 'center',
+      ...shadow,
+    },
+    emptyText: { color: colors.textMuted, fontSize: 13 },
+    communityCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.card,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.lg,
+      borderLeftWidth: 4,
+      borderLeftColor: brand.gold,
+      ...shadow,
+    },
+    communityIcon: { fontSize: 26, marginRight: spacing.md },
+    communityTextBlock: { flex: 1 },
+    communityTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+    communitySubtitle: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+    communityArrow: { fontSize: 18, color: colors.textSecondary },
+    newsRow: {
+      flexDirection: 'row',
+      backgroundColor: colors.card,
+      borderRadius: radius.md,
+      padding: spacing.sm,
+      marginBottom: spacing.sm,
+      alignItems: 'center',
+      ...shadow,
+    },
+    newsThumb: { width: 56, height: 56, borderRadius: radius.sm, backgroundColor: colors.border },
+    newsThumbPlaceholder: { alignItems: 'center', justifyContent: 'center' },
+    newsThumbIcon: { fontSize: 20 },
+    newsTextBlock: { flex: 1, marginLeft: spacing.md },
+    newsTitle: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, lineHeight: 19 },
+    newsDate: { fontSize: 11, color: colors.textMuted, marginTop: 4 },
+  });
+}
