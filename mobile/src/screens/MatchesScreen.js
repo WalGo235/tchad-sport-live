@@ -4,8 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
 import { supabase } from '../config/supabase';
+import { brand } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function MatchesScreen({ navigation }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { matches, setMatches } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -47,7 +51,7 @@ export default function MatchesScreen({ navigation }) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.container}>
-          <ActivityIndicator size="large" color="#0052CC" />
+          <ActivityIndicator size="large" color={brand.blue} />
         </View>
       </SafeAreaView>
     );
@@ -55,10 +59,10 @@ export default function MatchesScreen({ navigation }) {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'scheduled': return '#FCD34D';
-      case 'live': return '#DC2626';
-      case 'finished': return '#10B981';
-      default: return '#999';
+      case 'scheduled': return brand.gold;
+      case 'live': return brand.red;
+      case 'finished': return brand.green;
+      default: return colors.textMuted;
     }
   };
 
@@ -66,7 +70,7 @@ export default function MatchesScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView
         style={styles.container}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0052CC" colors={['#0052CC']} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={brand.blue} colors={[brand.blue]} />}
       >
         <View style={styles.header}>
           <Text style={styles.title}>📅 Calendrier des Matchs</Text>
@@ -114,21 +118,23 @@ export default function MatchesScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0052CC' },
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { backgroundColor: '#0052CC', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  matchCard: { backgroundColor: '#fff', margin: 10, borderRadius: 8, overflow: 'hidden', borderLeftWidth: 4, borderLeftColor: '#DC2626' },
-  statusBadge: { padding: 8, alignItems: 'center' },
-  statusText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
-  matchContent: { padding: 15 },
-  date: { fontSize: 12, color: '#999', marginBottom: 10 },
-  teamsContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  team: { flex: 1 },
-  teamName: { fontSize: 14, fontWeight: '600', color: '#333', textAlign: 'center' },
-  vs: { flex: 0.3, alignItems: 'center' },
-  score: { fontSize: 18, fontWeight: 'bold', color: '#0052CC' },
-  time: { fontSize: 12, color: '#666' },
-  stadium: { fontSize: 12, color: '#666' },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: brand.blue },
+    container: { flex: 1, backgroundColor: colors.background },
+    header: { backgroundColor: brand.blue, padding: 20 },
+    title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
+    matchCard: { backgroundColor: colors.card, margin: 10, borderRadius: 8, overflow: 'hidden', borderLeftWidth: 4, borderLeftColor: brand.red },
+    statusBadge: { padding: 8, alignItems: 'center' },
+    statusText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
+    matchContent: { padding: 15 },
+    date: { fontSize: 12, color: colors.textMuted, marginBottom: 10 },
+    teamsContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+    team: { flex: 1 },
+    teamName: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, textAlign: 'center' },
+    vs: { flex: 0.3, alignItems: 'center' },
+    score: { fontSize: 18, fontWeight: 'bold', color: brand.blue },
+    time: { fontSize: 12, color: colors.textSecondary },
+    stadium: { fontSize: 12, color: colors.textSecondary },
+  });
+}
