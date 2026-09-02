@@ -116,6 +116,15 @@ export default function HomeScreen({ navigation }) {
           )}
         </View>
 
+        <TouchableOpacity style={styles.communityCard} onPress={() => navigation.navigate('Community')}>
+          <Text style={styles.communityIcon}>💬</Text>
+          <View style={styles.communityTextBlock}>
+            <Text style={styles.communityTitle}>Communauté</Text>
+            <Text style={styles.communitySubtitle}>Rejoins la discussion entre fans</Text>
+          </View>
+          <Text style={styles.communityArrow}>→</Text>
+        </TouchableOpacity>
+
         <View style={styles.section}>
           <View style={styles.sectionTitleRow}>
             <Text style={styles.sectionTitle}>Actualités</Text>
@@ -184,6 +193,22 @@ const styles = StyleSheet.create({
     ...shadow,
   },
   emptyText: { color: colors.textMuted, fontSize: 13 },
+  communityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.gold,
+    ...shadow,
+  },
+  communityIcon: { fontSize: 26, marginRight: spacing.md },
+  communityTextBlock: { flex: 1 },
+  communityTitle: { fontSize: 15, fontWeight: '700', color: colors.navy },
+  communitySubtitle: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  communityArrow: { fontSize: 18, color: colors.textSecondary },
   newsRow: {
     flexDirection: 'row',
     backgroundColor: colors.surface,
