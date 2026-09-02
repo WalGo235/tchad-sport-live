@@ -22,6 +22,9 @@ import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import AboutScreen from './src/screens/AboutScreen';
+import CommunityScreen from './src/screens/CommunityScreen';
+import NewTopicScreen from './src/screens/NewTopicScreen';
+import TopicDetailScreen from './src/screens/TopicDetailScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -151,6 +154,21 @@ export default function App() {
               name="About"
               component={AboutScreen}
               options={{ ...stackHeaderOptions, title: 'À propos' }}
+            />
+            <Stack.Screen
+              name="Community"
+              component={CommunityScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="NewTopic"
+              component={NewTopicScreen}
+              options={{ ...stackHeaderOptions, title: 'Nouveau sujet' }}
+            />
+            <Stack.Screen
+              name="TopicDetail"
+              component={TopicDetailScreen}
+              options={{ ...stackHeaderOptions, title: 'Discussion' }}
             />
           </Stack.Navigator>
         </NavigationContainer>
