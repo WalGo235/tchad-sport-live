@@ -6,9 +6,11 @@ import { apiService } from '../services/api';
 import { supabase } from '../config/supabase';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function MatchesScreen({ navigation }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const { matches, setMatches } = useAppStore();
   const [loading, setLoading] = useState(true);
@@ -66,6 +68,12 @@ export default function MatchesScreen({ navigation }) {
     }
   };
 
+  const getStatusLabel = (status) => {
+    if (status === 'scheduled') return t('statusScheduled');
+    if (status === 'live') return t('statusLive');
+    return t('statusFinished');
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView
@@ -73,7 +81,7 @@ export default function MatchesScreen({ navigation }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={brand.blue} colors={[brand.blue]} />}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>📅 Calendrier des Matchs</Text>
+          <Text style={styles.title}>{t('matchesTitle')}</Text>
         </View>
 
         {matches.map(match => (
@@ -83,9 +91,7 @@ export default function MatchesScreen({ navigation }) {
             onPress={() => navigation.navigate('MatchDetail', { matchId: match.id })}
           >
             <View style={[styles.statusBadge, { backgroundColor: getStatusColor(match.status) }]}>
-              <Text style={styles.statusText}>
-                {match.status === 'scheduled' ? 'Programmé' : match.status === 'live' ? 'EN DIRECT' : 'Terminé'}
-              </Text>
+              <Text style={styles.statusText}>{getStatusLabel(match.status)}</Text>
             </View>
             
             <View style={styles.matchContent}>
@@ -109,7 +115,7 @@ export default function MatchesScreen({ navigation }) {
                 </View>
               </View>
               
-              <Text style={styles.stadium}>📍 {match.venue || 'Stade'}</Text>
+              <Text style={styles.stadium}>📍 {match.venue || t('stadium')}</Text>
             </View>
           </TouchableOpacity>
         ))}
