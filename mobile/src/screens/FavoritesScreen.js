@@ -2,8 +2,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, Text, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
+import { brand } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function FavoritesScreen() {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { teams, favorites, removeFavorite, setTeams } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -33,7 +37,7 @@ export default function FavoritesScreen() {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0052CC" />
+        <ActivityIndicator size="large" color={brand.blue} />
       </View>
     );
   }
@@ -80,19 +84,21 @@ export default function FavoritesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { backgroundColor: '#DC2626', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  listContent: { padding: 10 },
-  favoriteCard: { backgroundColor: '#fff', marginBottom: 10, borderRadius: 8, padding: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderLeftWidth: 4, borderLeftColor: '#DC2626' },
-  teamInfo: { flex: 1 },
-  teamName: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-  teamCity: { fontSize: 12, color: '#999', marginTop: 3 },
-  removeButton: { padding: 8 },
-  removeIcon: { fontSize: 20 },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyIcon: { fontSize: 60, marginBottom: 20 },
-  emptyText: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-  emptySubtext: { fontSize: 14, color: '#999', marginTop: 10, textAlign: 'center' },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    header: { backgroundColor: brand.red, padding: 20 },
+    title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
+    listContent: { padding: 10 },
+    favoriteCard: { backgroundColor: colors.card, marginBottom: 10, borderRadius: 8, padding: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderLeftWidth: 4, borderLeftColor: brand.red },
+    teamInfo: { flex: 1 },
+    teamName: { fontSize: 16, fontWeight: 'bold', color: colors.textPrimary },
+    teamCity: { fontSize: 12, color: colors.textMuted, marginTop: 3 },
+    removeButton: { padding: 8 },
+    removeIcon: { fontSize: 20 },
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    emptyIcon: { fontSize: 60, marginBottom: 20 },
+    emptyText: { fontSize: 18, fontWeight: 'bold', color: colors.textPrimary },
+    emptySubtext: { fontSize: 14, color: colors.textMuted, marginTop: 10, textAlign: 'center' },
+  });
+}
