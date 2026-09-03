@@ -3,8 +3,12 @@ import { View, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, Activi
 import { apiService } from '../services/api';
 import { supabase } from '../config/supabase';
 import { useAppStore } from '../store/appStore';
+import { brand } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function TopicDetailScreen({ route }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { topicId } = route.params;
   const user = useAppStore((state) => state.user);
   const [topic, setTopic] = useState(null);
@@ -87,7 +91,7 @@ export default function TopicDetailScreen({ route }) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0052CC" />
+        <ActivityIndicator size="large" color={brand.blue} />
       </View>
     );
   }
@@ -142,7 +146,7 @@ export default function TopicDetailScreen({ route }) {
             <TextInput
               style={styles.input}
               placeholder="Répondre..."
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textMuted}
               value={newReply}
               onChangeText={setNewReply}
               multiline
@@ -159,25 +163,27 @@ export default function TopicDetailScreen({ route }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  topicCard: { backgroundColor: '#fff', margin: 15, borderRadius: 8, padding: 18 },
-  topicTitle: { fontSize: 19, fontWeight: 'bold', color: '#333', marginBottom: 10 },
-  metaRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  authorName: { fontSize: 13, fontWeight: '600', color: '#0052CC' },
-  date: { fontSize: 12, color: '#999' },
-  topicContent: { fontSize: 15, color: '#444', lineHeight: 22, marginBottom: 12 },
-  likeRow: { flexDirection: 'row', alignItems: 'center' },
-  likeIcon: { fontSize: 18, marginRight: 6 },
-  likeCount: { fontSize: 13, color: '#666' },
-  repliesSection: { backgroundColor: '#fff', margin: 15, marginTop: 0, borderRadius: 8, padding: 15 },
-  repliesTitle: { fontSize: 14, fontWeight: 'bold', color: '#0052CC', marginBottom: 12 },
-  replyCard: { borderTopWidth: 1, borderTopColor: '#eee', paddingVertical: 12 },
-  replyContent: { fontSize: 14, color: '#444', lineHeight: 20, marginBottom: 8 },
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 12, borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 12 },
-  input: { flex: 1, backgroundColor: '#f5f5f5', borderRadius: 8, borderWidth: 1, borderColor: '#ddd', padding: 10, fontSize: 13, color: '#333', maxHeight: 80, marginRight: 8 },
-  postButton: { backgroundColor: '#0052CC', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8 },
-  postButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
-  loginPrompt: { fontSize: 12, color: '#999', textAlign: 'center', marginTop: 12, fontStyle: 'italic' },
-  emptyText: { textAlign: 'center', marginTop: 40, color: '#999' },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    topicCard: { backgroundColor: colors.card, margin: 15, borderRadius: 8, padding: 18 },
+    topicTitle: { fontSize: 19, fontWeight: 'bold', color: colors.textPrimary, marginBottom: 10 },
+    metaRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+    authorName: { fontSize: 13, fontWeight: '600', color: brand.blue },
+    date: { fontSize: 12, color: colors.textMuted },
+    topicContent: { fontSize: 15, color: colors.textSecondary, lineHeight: 22, marginBottom: 12 },
+    likeRow: { flexDirection: 'row', alignItems: 'center' },
+    likeIcon: { fontSize: 18, marginRight: 6 },
+    likeCount: { fontSize: 13, color: colors.textSecondary },
+    repliesSection: { backgroundColor: colors.card, margin: 15, marginTop: 0, borderRadius: 8, padding: 15 },
+    repliesTitle: { fontSize: 14, fontWeight: 'bold', color: brand.blue, marginBottom: 12 },
+    replyCard: { borderTopWidth: 1, borderTopColor: colors.border, paddingVertical: 12 },
+    replyContent: { fontSize: 14, color: colors.textSecondary, lineHeight: 20, marginBottom: 8 },
+    inputRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 12, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 12 },
+    input: { flex: 1, backgroundColor: colors.inputBg, borderRadius: 8, borderWidth: 1, borderColor: colors.inputBorder, padding: 10, fontSize: 13, color: colors.textPrimary, maxHeight: 80, marginRight: 8 },
+    postButton: { backgroundColor: brand.blue, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8 },
+    postButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
+    loginPrompt: { fontSize: 12, color: colors.textMuted, textAlign: 'center', marginTop: 12, fontStyle: 'italic' },
+    emptyText: { textAlign: 'center', marginTop: 40, color: colors.textMuted },
+  });
+}
