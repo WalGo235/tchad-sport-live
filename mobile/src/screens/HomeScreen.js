@@ -7,9 +7,11 @@ import { apiService } from '../services/api';
 import { supabase } from '../config/supabase';
 import { brand, radius, shadow, spacing } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function HomeScreen({ navigation }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const { matches, news, setMatches, setNews } = useAppStore();
   const [loading, setLoading] = useState(true);
@@ -74,11 +76,11 @@ export default function HomeScreen({ navigation }) {
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={brand.navy} colors={[brand.navy]} />}
       >
-        <Text style={styles.appTitle}>TchadSportLive</Text>
-        <Text style={styles.appSubtitle}>Division 1 de Football Tchadien</Text>
+        <Text style={styles.appTitle}>{t('appTitle')}</Text>
+        <Text style={styles.appSubtitle}>{t('appSubtitle')}</Text>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Prochain match</Text>
+          <Text style={styles.sectionTitle}>{t('nextMatch')}</Text>
           {nextMatch ? (
             <TouchableOpacity
               style={styles.nextMatchCard}
@@ -94,7 +96,7 @@ export default function HomeScreen({ navigation }) {
               </View>
 
               <View style={styles.nextMatchCenter}>
-                <Text style={styles.vsLabel}>VS</Text>
+                <Text style={styles.vsLabel}>{t('vs')}</Text>
                 <Text style={styles.nextMatchDate}>
                   {new Date(nextMatch.match_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                 </Text>
@@ -114,7 +116,7 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
           ) : (
             <View style={styles.emptyCard}>
-              <Text style={styles.emptyText}>Aucun match à venir programmé</Text>
+              <Text style={styles.emptyText}>{t('noUpcomingMatch')}</Text>
             </View>
           )}
         </View>
@@ -122,17 +124,17 @@ export default function HomeScreen({ navigation }) {
         <TouchableOpacity style={styles.communityCard} onPress={() => navigation.navigate('Community')}>
           <Text style={styles.communityIcon}>💬</Text>
           <View style={styles.communityTextBlock}>
-            <Text style={styles.communityTitle}>Communauté</Text>
-            <Text style={styles.communitySubtitle}>Rejoins la discussion entre fans</Text>
+            <Text style={styles.communityTitle}>{t('community')}</Text>
+            <Text style={styles.communitySubtitle}>{t('communitySubtitle')}</Text>
           </View>
           <Text style={styles.communityArrow}>→</Text>
         </TouchableOpacity>
 
         <View style={styles.section}>
           <View style={styles.sectionTitleRow}>
-            <Text style={styles.sectionTitle}>Actualités</Text>
+            <Text style={styles.sectionTitle}>{t('news')}</Text>
             <TouchableOpacity onPress={() => navigation.navigate('News')}>
-              <Text style={styles.seeAllLink}>Voir tout →</Text>
+              <Text style={styles.seeAllLink}>{t('seeAll')} →</Text>
             </TouchableOpacity>
           </View>
           {news.slice(0, 5).map(article => (
