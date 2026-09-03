@@ -4,8 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiService } from '../services/api';
 import { supabase } from '../config/supabase';
 import { useAppStore } from '../store/appStore';
+import { brand } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function CommunityScreen({ navigation }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const user = useAppStore((state) => state.user);
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +50,7 @@ export default function CommunityScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0052CC" />
+        <ActivityIndicator size="large" color={brand.blue} />
       </View>
     );
   }
@@ -97,22 +101,24 @@ export default function CommunityScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0052CC' },
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { backgroundColor: '#0052CC', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 12 },
-  newButton: { backgroundColor: '#FCD34D', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
-  newButtonText: { color: '#0052CC', fontWeight: 'bold', fontSize: 14 },
-  listContent: { padding: 10 },
-  topicCard: { backgroundColor: '#fff', marginBottom: 10, borderRadius: 8, padding: 15, borderLeftWidth: 4, borderLeftColor: '#0052CC' },
-  topicTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 6 },
-  topicPreview: { fontSize: 13, color: '#666', lineHeight: 18, marginBottom: 10 },
-  topicFooter: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 8 },
-  topicAuthor: { fontSize: 12, color: '#0052CC', fontWeight: '600' },
-  topicDate: { fontSize: 12, color: '#999' },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
-  emptyIcon: { fontSize: 50, marginBottom: 15 },
-  emptyText: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-  emptySubtext: { fontSize: 13, color: '#999', marginTop: 8, textAlign: 'center' },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: brand.blue },
+    container: { flex: 1, backgroundColor: colors.background },
+    header: { backgroundColor: brand.blue, padding: 20 },
+    title: { fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 12 },
+    newButton: { backgroundColor: brand.gold, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
+    newButtonText: { color: brand.blue, fontWeight: 'bold', fontSize: 14 },
+    listContent: { padding: 10 },
+    topicCard: { backgroundColor: colors.card, marginBottom: 10, borderRadius: 8, padding: 15, borderLeftWidth: 4, borderLeftColor: brand.blue },
+    topicTitle: { fontSize: 16, fontWeight: 'bold', color: colors.textPrimary, marginBottom: 6 },
+    topicPreview: { fontSize: 13, color: colors.textSecondary, lineHeight: 18, marginBottom: 10 },
+    topicFooter: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8 },
+    topicAuthor: { fontSize: 12, color: brand.blue, fontWeight: '600' },
+    topicDate: { fontSize: 12, color: colors.textMuted },
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
+    emptyIcon: { fontSize: 50, marginBottom: 15 },
+    emptyText: { fontSize: 16, fontWeight: 'bold', color: colors.textPrimary },
+    emptySubtext: { fontSize: 13, color: colors.textMuted, marginTop: 8, textAlign: 'center' },
+  });
+}
