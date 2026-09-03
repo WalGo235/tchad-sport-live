@@ -3,8 +3,12 @@ import { View, StyleSheet, Text, TextInput, TouchableOpacity, ActivityIndicator 
 import { apiService } from '../services/api';
 import { supabase } from '../config/supabase';
 import { useAppStore } from '../store/appStore';
+import { brand } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function CommentSection({ targetType, targetId }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const user = useAppStore((state) => state.user);
   const [comments, setComments] = useState([]);
   const [likesByComment, setLikesByComment] = useState({});
@@ -84,7 +88,7 @@ export default function CommentSection({ targetType, targetId }) {
       <Text style={styles.title}>💬 Commentaires ({comments.length})</Text>
 
       {loading ? (
-        <ActivityIndicator color="#0052CC" style={{ marginVertical: 20 }} />
+        <ActivityIndicator color={brand.blue} style={{ marginVertical: 20 }} />
       ) : comments.length === 0 ? (
         <Text style={styles.emptyText}>Aucun commentaire pour l'instant. Sois le premier à réagir !</Text>
       ) : (
@@ -115,7 +119,7 @@ export default function CommentSection({ targetType, targetId }) {
           <TextInput
             style={styles.input}
             placeholder="Ajouter un commentaire..."
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.textMuted}
             value={newComment}
             onChangeText={setNewComment}
             multiline
@@ -131,21 +135,23 @@ export default function CommentSection({ targetType, targetId }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { backgroundColor: '#fff', margin: 15, marginTop: 0, borderRadius: 8, padding: 15 },
-  title: { fontSize: 16, fontWeight: 'bold', color: '#0052CC', marginBottom: 12 },
-  emptyText: { fontSize: 13, color: '#999', textAlign: 'center', paddingVertical: 15 },
-  commentCard: { borderBottomWidth: 1, borderBottomColor: '#eee', paddingVertical: 10 },
-  commentHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  authorName: { fontSize: 13, fontWeight: '600', color: '#333' },
-  date: { fontSize: 11, color: '#999' },
-  content: { fontSize: 14, color: '#444', lineHeight: 20, marginBottom: 8 },
-  likeRow: { flexDirection: 'row', alignItems: 'center' },
-  likeIcon: { fontSize: 16, marginRight: 5 },
-  likeCount: { fontSize: 12, color: '#666' },
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 12 },
-  input: { flex: 1, backgroundColor: '#f5f5f5', borderRadius: 8, borderWidth: 1, borderColor: '#ddd', padding: 10, fontSize: 13, color: '#333', maxHeight: 80, marginRight: 8 },
-  postButton: { backgroundColor: '#0052CC', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8 },
-  postButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
-  loginPrompt: { fontSize: 12, color: '#999', textAlign: 'center', marginTop: 12, fontStyle: 'italic' },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    container: { backgroundColor: colors.card, margin: 15, marginTop: 0, borderRadius: 8, padding: 15 },
+    title: { fontSize: 16, fontWeight: 'bold', color: brand.blue, marginBottom: 12 },
+    emptyText: { fontSize: 13, color: colors.textMuted, textAlign: 'center', paddingVertical: 15 },
+    commentCard: { borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: 10 },
+    commentHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
+    authorName: { fontSize: 13, fontWeight: '600', color: colors.textPrimary },
+    date: { fontSize: 11, color: colors.textMuted },
+    content: { fontSize: 14, color: colors.textSecondary, lineHeight: 20, marginBottom: 8 },
+    likeRow: { flexDirection: 'row', alignItems: 'center' },
+    likeIcon: { fontSize: 16, marginRight: 5 },
+    likeCount: { fontSize: 12, color: colors.textSecondary },
+    inputRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 12 },
+    input: { flex: 1, backgroundColor: colors.inputBg, borderRadius: 8, borderWidth: 1, borderColor: colors.inputBorder, padding: 10, fontSize: 13, color: colors.textPrimary, maxHeight: 80, marginRight: 8 },
+    postButton: { backgroundColor: brand.blue, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8 },
+    postButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
+    loginPrompt: { fontSize: 12, color: colors.textMuted, textAlign: 'center', marginTop: 12, fontStyle: 'italic' },
+  });
+}
