@@ -3,8 +3,12 @@ import { View, ScrollView, StyleSheet, Text, ActivityIndicator } from 'react-nat
 import { apiService } from '../services/api';
 import { supabase } from '../config/supabase';
 import CommentSection from '../components/CommentSection';
+import { brand } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function MatchDetailScreen({ route }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { matchId } = route.params;
   const [match, setMatch] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,7 +43,7 @@ export default function MatchDetailScreen({ route }) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0052CC" />
+        <ActivityIndicator size="large" color={brand.blue} />
       </View>
     );
   }
@@ -88,18 +92,20 @@ export default function MatchDetailScreen({ route }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  scoreCard: { backgroundColor: '#0052CC', padding: 25, alignItems: 'center' },
-  date: { fontSize: 13, color: '#FCD34D', marginBottom: 20, textTransform: 'capitalize' },
-  teamsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' },
-  teamName: { flex: 1, fontSize: 16, fontWeight: '600', color: '#fff', textAlign: 'center' },
-  score: { fontSize: 32, fontWeight: 'bold', color: '#fff', marginHorizontal: 10 },
-  time: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginHorizontal: 10 },
-  status: { marginTop: 15, fontSize: 12, fontWeight: 'bold', color: '#FCD34D' },
-  infoCard: { backgroundColor: '#fff', margin: 15, borderRadius: 8, padding: 15 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 },
-  infoLabel: { fontSize: 14, color: '#666' },
-  infoValue: { fontSize: 14, fontWeight: '600', color: '#333' },
-  emptyText: { textAlign: 'center', marginTop: 40, color: '#999' },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    scoreCard: { backgroundColor: brand.blue, padding: 25, alignItems: 'center' },
+    date: { fontSize: 13, color: brand.gold, marginBottom: 20, textTransform: 'capitalize' },
+    teamsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' },
+    teamName: { flex: 1, fontSize: 16, fontWeight: '600', color: '#fff', textAlign: 'center' },
+    score: { fontSize: 32, fontWeight: 'bold', color: '#fff', marginHorizontal: 10 },
+    time: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginHorizontal: 10 },
+    status: { marginTop: 15, fontSize: 12, fontWeight: 'bold', color: brand.gold },
+    infoCard: { backgroundColor: colors.card, margin: 15, borderRadius: 8, padding: 15 },
+    infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 },
+    infoLabel: { fontSize: 14, color: colors.textSecondary },
+    infoValue: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+    emptyText: { textAlign: 'center', marginTop: 40, color: colors.textMuted },
+  });
+}
