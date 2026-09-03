@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { supabase } from '../config/supabase';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function SettingsScreen({ navigation }) {
   const { colors, isDark, setDarkMode } = useTheme();
+  const { t, language, setLanguage } = useLanguage();
   const styles = createStyles(colors);
-  const [notifications, setNotifications] = useState(true);
-  const [language, setLanguage] = useState('fr');
   const user = useAppStore((state) => state.user);
 
   const handleSignOut = async () => {
-    Alert.alert('Se déconnecter', 'Tu veux vraiment te déconnecter ?', [
+    Alert.alert(t('logout'), 'Tu veux vraiment te déconnecter ?', [
       { text: 'Annuler', style: 'cancel' },
       {
-        text: 'Se déconnecter',
+        text: t('logout'),
         style: 'destructive',
         onPress: () => supabase.auth.signOut(),
       },
@@ -28,38 +28,37 @@ export default function SettingsScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>👤 Profil</Text>
+          <Text style={styles.title}>{t('profileTitle')}</Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Mon activité</Text>
+          <Text style={styles.sectionTitle}>{t('myActivity')}</Text>
           <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate('Favorites')}>
-            <Text style={styles.linkLabel}>❤️ Mes équipes favorites</Text>
+            <Text style={styles.linkLabel}>{t('myFavoriteTeams')}</Text>
             <Text style={styles.linkArrow}>→</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Notifications</Text>
+          <Text style={styles.sectionTitle}>{t('notifications')}</Text>
           <View style={styles.settingRow}>
             <View>
-              <Text style={styles.settingLabel}>Notifications en temps réel</Text>
-              <Text style={styles.settingDescription}>Recevez les mises à jour des matchs</Text>
+              <Text style={styles.settingLabel}>{t('realtimeNotifications')}</Text>
+              <Text style={styles.settingDescription}>{t('realtimeNotificationsDesc')}</Text>
             </View>
             <Switch
-              value={notifications}
-              onValueChange={setNotifications}
+              value={true}
               trackColor={{ false: colors.border, true: brand.blue }}
             />
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Apparence</Text>
+          <Text style={styles.sectionTitle}>{t('appearance')}</Text>
           <View style={styles.settingRow}>
             <View>
-              <Text style={styles.settingLabel}>Mode sombre</Text>
-              <Text style={styles.settingDescription}>Thème sombre pour les yeux</Text>
+              <Text style={styles.settingLabel}>{t('darkMode')}</Text>
+              <Text style={styles.settingDescription}>{t('darkModeDesc')}</Text>
             </View>
             <Switch
               value={isDark}
@@ -70,7 +69,7 @@ export default function SettingsScreen({ navigation }) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Langue</Text>
+          <Text style={styles.sectionTitle}>{t('language')}</Text>
           <View style={styles.languageOptions}>
             <TouchableOpacity
               style={[styles.languageButton, language === 'fr' && styles.languageButtonActive]}
@@ -94,24 +93,24 @@ export default function SettingsScreen({ navigation }) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Compte</Text>
+          <Text style={styles.sectionTitle}>{t('account')}</Text>
           {user ? (
             <>
               <Text style={styles.accountEmail}>{user.email}</Text>
               <TouchableOpacity style={[styles.button, styles.buttonDanger]} onPress={handleSignOut}>
-                <Text style={styles.buttonText}>Se déconnecter</Text>
+                <Text style={styles.buttonText}>{t('logout')}</Text>
               </TouchableOpacity>
             </>
           ) : (
             <>
               <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
-                <Text style={styles.buttonText}>Se connecter</Text>
+                <Text style={styles.buttonText}>{t('login')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.buttonSecondary]}
                 onPress={() => navigation.navigate('SignUp')}
               >
-                <Text style={styles.buttonTextSecondary}>Créer un compte</Text>
+                <Text style={styles.buttonTextSecondary}>{t('signup')}</Text>
               </TouchableOpacity>
             </>
           )}
@@ -119,13 +118,13 @@ export default function SettingsScreen({ navigation }) {
 
         <View style={styles.section}>
           <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate('About')}>
-            <Text style={styles.sectionTitleInline}>À propos</Text>
+            <Text style={styles.sectionTitleInline}>{t('about')}</Text>
             <Text style={styles.linkArrow}>→</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>© 2026 TchadSportLive. Tous droits réservés.</Text>
+          <Text style={styles.footerText}>{t('footer')}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
