@@ -6,9 +6,11 @@ import { apiService } from '../services/api';
 import { supabase } from '../config/supabase';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function StandingsScreen({ navigation }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const { standings, setStandings } = useAppStore();
   const [loading, setLoading] = useState(true);
@@ -75,21 +77,21 @@ export default function StandingsScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>🏆 Classement</Text>
+          <Text style={styles.title}>{t('standingsTitle')}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Teams')}>
-            <Text style={styles.teamsLink}>⚽ Équipes →</Text>
+            <Text style={styles.teamsLink}>{t('teamsLink')} →</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.tableHeader}>
-          <Text style={styles.headerPos}>#</Text>
-          <Text style={styles.headerTeam}>Équipe</Text>
+          <Text style={styles.headerPos}>{t('colPos')}</Text>
+          <Text style={styles.headerTeam}>{t('colTeam')}</Text>
           <View style={styles.headerStats}>
-            <Text style={styles.headerStat}>J</Text>
-            <Text style={styles.headerStat}>G</Text>
-            <Text style={styles.headerStat}>N</Text>
-            <Text style={styles.headerStat}>P</Text>
-            <Text style={styles.headerPoints}>Pts</Text>
+            <Text style={styles.headerStat}>{t('colPlayed')}</Text>
+            <Text style={styles.headerStat}>{t('colWon')}</Text>
+            <Text style={styles.headerStat}>{t('colDrawn')}</Text>
+            <Text style={styles.headerStat}>{t('colLost')}</Text>
+            <Text style={styles.headerPoints}>{t('colPoints')}</Text>
           </View>
         </View>
 
