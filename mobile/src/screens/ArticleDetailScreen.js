@@ -3,8 +3,12 @@ import { View, ScrollView, StyleSheet, Text, ActivityIndicator } from 'react-nat
 import { Image } from 'expo-image';
 import { apiService } from '../services/api';
 import CommentSection from '../components/CommentSection';
+import { brand } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function ArticleDetailScreen({ route }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { articleId } = route.params;
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,7 +30,7 @@ export default function ArticleDetailScreen({ route }) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0052CC" />
+        <ActivityIndicator size="large" color={brand.blue} />
       </View>
     );
   }
@@ -56,12 +60,14 @@ export default function ArticleDetailScreen({ route }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  coverImage: { width: '100%', height: 200, backgroundColor: '#eee' },
-  contentCard: { backgroundColor: '#fff', margin: 15, marginBottom: 10, borderRadius: 8, padding: 18 },
-  title: { fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 8 },
-  date: { fontSize: 12, color: '#999', marginBottom: 16 },
-  body: { fontSize: 15, color: '#444', lineHeight: 23 },
-  emptyText: { textAlign: 'center', marginTop: 40, color: '#999' },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    coverImage: { width: '100%', height: 200, backgroundColor: colors.border },
+    contentCard: { backgroundColor: colors.card, margin: 15, marginBottom: 10, borderRadius: 8, padding: 18 },
+    title: { fontSize: 20, fontWeight: 'bold', color: colors.textPrimary, marginBottom: 8 },
+    date: { fontSize: 12, color: colors.textMuted, marginBottom: 16 },
+    body: { fontSize: 15, color: colors.textSecondary, lineHeight: 23 },
+    emptyText: { textAlign: 'center', marginTop: 40, color: colors.textMuted },
+  });
+}
