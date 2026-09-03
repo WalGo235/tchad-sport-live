@@ -3,8 +3,12 @@ import { View, StyleSheet, Text, ActivityIndicator, FlatList, TouchableOpacity }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
+import { brand } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function NewsScreen({ navigation }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { news, setNews } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -32,7 +36,7 @@ export default function NewsScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0052CC" />
+        <ActivityIndicator size="large" color={brand.blue} />
       </View>
     );
   }
@@ -71,16 +75,18 @@ export default function NewsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0052CC' },
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { backgroundColor: '#0052CC', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  listContent: { padding: 10 },
-  newsCard: { backgroundColor: '#fff', marginBottom: 10, borderRadius: 8, padding: 15, borderLeftWidth: 4, borderLeftColor: '#FCD34D' },
-  newsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  newsTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', flex: 1 },
-  newsContent: { fontSize: 13, color: '#666', lineHeight: 18, marginBottom: 10 },
-  newsFooter: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 10 },
-  newsDate: { fontSize: 12, color: '#999' },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: brand.blue },
+    container: { flex: 1, backgroundColor: colors.background },
+    header: { backgroundColor: brand.blue, padding: 20 },
+    title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
+    listContent: { padding: 10 },
+    newsCard: { backgroundColor: colors.card, marginBottom: 10, borderRadius: 8, padding: 15, borderLeftWidth: 4, borderLeftColor: brand.gold },
+    newsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+    newsTitle: { fontSize: 16, fontWeight: 'bold', color: colors.textPrimary, flex: 1 },
+    newsContent: { fontSize: 13, color: colors.textSecondary, lineHeight: 18, marginBottom: 10 },
+    newsFooter: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 10 },
+    newsDate: { fontSize: 12, color: colors.textMuted },
+  });
+}
