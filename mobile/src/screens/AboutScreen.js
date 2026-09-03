@@ -1,8 +1,13 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet, Text, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { brand } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function AboutScreen() {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -39,19 +44,21 @@ export default function AboutScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0052CC' },
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  content: { padding: 20, alignItems: 'center' },
-  logoWrap: { marginTop: 10, marginBottom: 15 },
-  logo: { width: 80, height: 80, borderRadius: 16 },
-  appName: { fontSize: 22, fontWeight: 'bold', color: '#0052CC' },
-  tagline: { fontSize: 13, color: '#999', marginTop: 4, marginBottom: 24 },
-  card: { backgroundColor: '#fff', borderRadius: 10, padding: 18, width: '100%', marginBottom: 15 },
-  sectionTitle: { fontSize: 15, fontWeight: 'bold', color: '#0052CC', marginBottom: 10 },
-  paragraph: { fontSize: 14, color: '#444', lineHeight: 21 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  infoLabel: { fontSize: 14, color: '#666' },
-  infoValue: { fontSize: 14, fontWeight: '600', color: '#333' },
-  footerText: { fontSize: 12, color: '#999', marginTop: 10 },
-});
+function createStyles(colors) {
+  return StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: brand.blue },
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: 20, alignItems: 'center' },
+    logoWrap: { marginTop: 10, marginBottom: 15 },
+    logo: { width: 80, height: 80, borderRadius: 16 },
+    appName: { fontSize: 22, fontWeight: 'bold', color: brand.blue },
+    tagline: { fontSize: 13, color: colors.textMuted, marginTop: 4, marginBottom: 24 },
+    card: { backgroundColor: colors.card, borderRadius: 10, padding: 18, width: '100%', marginBottom: 15 },
+    sectionTitle: { fontSize: 15, fontWeight: 'bold', color: brand.blue, marginBottom: 10 },
+    paragraph: { fontSize: 14, color: colors.textSecondary, lineHeight: 21 },
+    infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
+    infoLabel: { fontSize: 14, color: colors.textSecondary },
+    infoValue: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+    footerText: { fontSize: 12, color: colors.textMuted, marginTop: 10 },
+  });
+}
