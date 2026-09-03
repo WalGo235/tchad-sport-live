@@ -9,6 +9,7 @@ import { NavigationBar } from 'expo-navigation-bar';
 import { StatusBar } from 'expo-status-bar';
 import { brand } from './src/theme';
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
+import { LanguageProvider, useLanguage } from './src/contexts/LanguageContext';
 import { supabase } from './src/config/supabase';
 import { useAppStore } from './src/store/appStore';
 
@@ -38,6 +39,7 @@ const stackHeaderOptions = {
 };
 
 function BottomTabNavigator() {
+  const { t } = useLanguage();
   return (
     <Tab.Navigator
       screenOptions={{
@@ -61,7 +63,7 @@ function BottomTabNavigator() {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarLabel: 'Accueil',
+          tabBarLabel: t('tabHome'),
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text>,
         }}
       />
@@ -69,7 +71,7 @@ function BottomTabNavigator() {
         name="Matches"
         component={MatchesScreen}
         options={{
-          tabBarLabel: 'Matchs',
+          tabBarLabel: t('tabMatches'),
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📅</Text>,
         }}
       />
@@ -77,7 +79,7 @@ function BottomTabNavigator() {
         name="Standings"
         component={StandingsScreen}
         options={{
-          tabBarLabel: 'Classement',
+          tabBarLabel: t('tabStandings'),
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏆</Text>,
         }}
       />
@@ -85,7 +87,7 @@ function BottomTabNavigator() {
         name="Settings"
         component={SettingsScreen}
         options={{
-          tabBarLabel: 'Profil',
+          tabBarLabel: t('tabProfile'),
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text>,
         }}
       />
@@ -183,11 +185,13 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationBar hidden={true} />
-      <ThemeProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <AppContent />
-        </GestureHandlerRootView>
-      </ThemeProvider>
+      <LanguageProvider>
+        <ThemeProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <AppContent />
+          </GestureHandlerRootView>
+        </ThemeProvider>
+      </LanguageProvider>
     </SafeAreaProvider>
   );
 }
