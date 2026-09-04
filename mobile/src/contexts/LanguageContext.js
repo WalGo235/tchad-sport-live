@@ -25,7 +25,15 @@ export function LanguageProvider({ children }) {
     }
   }, []);
 
-  const t = (key) => translations[language]?.[key] ?? translations.fr[key] ?? key;
+  const t = (key, params) => {
+    let str = translations[language]?.[key] ?? translations.fr[key] ?? key;
+    if (params) {
+      Object.keys(params).forEach((paramKey) => {
+        str = str.replace(`{{${paramKey}}}`, params[paramKey]);
+      });
+    }
+    return str;
+  };
 
   const setLanguage = (newLang) => {
     const wasRTL = I18nManager.isRTL;
