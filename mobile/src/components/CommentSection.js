@@ -5,9 +5,11 @@ import { supabase } from '../config/supabase';
 import { useAppStore } from '../store/appStore';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function CommentSection({ targetType, targetId }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const user = useAppStore((state) => state.user);
   const [comments, setComments] = useState([]);
@@ -85,12 +87,12 @@ export default function CommentSection({ targetType, targetId }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>💬 Commentaires ({comments.length})</Text>
+      <Text style={styles.title}>{t('commentsTitle')} ({comments.length})</Text>
 
       {loading ? (
         <ActivityIndicator color={brand.blue} style={{ marginVertical: 20 }} />
       ) : comments.length === 0 ? (
-        <Text style={styles.emptyText}>Aucun commentaire pour l'instant. Sois le premier à réagir !</Text>
+        <Text style={styles.emptyText}>{t('noComments')}</Text>
       ) : (
         comments.map((comment) => {
           const likeInfo = likesByComment[comment.id] || { count: 0, likedByMe: false };
@@ -118,18 +120,18 @@ export default function CommentSection({ targetType, targetId }) {
         <View style={styles.inputRow}>
           <TextInput
             style={styles.input}
-            placeholder="Ajouter un commentaire..."
+            placeholder={t('addCommentPlaceholder')}
             placeholderTextColor={colors.textMuted}
             value={newComment}
             onChangeText={setNewComment}
             multiline
           />
           <TouchableOpacity style={styles.postButton} onPress={handlePost} disabled={posting || !newComment.trim()}>
-            {posting ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.postButtonText}>Publier</Text>}
+            {posting ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.postButtonText}>{t('publish')}</Text>}
           </TouchableOpacity>
         </View>
       ) : (
-        <Text style={styles.loginPrompt}>Connecte-toi (onglet Profil) pour commenter et aimer.</Text>
+        <Text style={styles.loginPrompt}>{t('loginToComment')}</Text>
       )}
     </View>
   );
