@@ -6,9 +6,11 @@ import { supabase } from '../config/supabase';
 import { useAppStore } from '../store/appStore';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function CommunityScreen({ navigation }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const user = useAppStore((state) => state.user);
   const [topics, setTopics] = useState([]);
@@ -70,10 +72,10 @@ export default function CommunityScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>💬 Communauté</Text>
+          <Text style={styles.title}>💬 {t('community')}</Text>
           {user ? (
             <TouchableOpacity style={styles.newButton} onPress={() => navigation.navigate('NewTopic')}>
-              <Text style={styles.newButtonText}>+ Nouveau sujet</Text>
+              <Text style={styles.newButtonText}>{t('newTopicButton')}</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -81,9 +83,9 @@ export default function CommunityScreen({ navigation }) {
         {topics.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>💬</Text>
-            <Text style={styles.emptyText}>Aucun sujet pour l'instant</Text>
+            <Text style={styles.emptyText}>{t('noTopicsYet')}</Text>
             <Text style={styles.emptySubtext}>
-              {user ? "Lance la discussion !" : "Connecte-toi pour lancer le premier sujet."}
+              {user ? t('startDiscussion') : t('loginToStartDiscussion')}
             </Text>
           </View>
         ) : (
