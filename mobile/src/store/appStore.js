@@ -14,6 +14,8 @@ export const useAppStore = create(
       darkMode: false,
       darkModeInitialized: false,
       language: 'fr',
+      pushEnabled: false,
+      pushToken: null,
 
       setUser: (user) => set({ user }),
       addFavorite: (teamId) => set((state) => ({
@@ -29,6 +31,8 @@ export const useAppStore = create(
       setDarkMode: (darkMode) => set({ darkMode }),
       setDarkModeInitialized: (darkModeInitialized) => set({ darkModeInitialized }),
       setLanguage: (language) => set({ language }),
+      setPushEnabled: (pushEnabled) => set({ pushEnabled }),
+      setPushToken: (pushToken) => set({ pushToken }),
     }),
     {
       name: 'tchadsportlive-storage',
@@ -38,6 +42,8 @@ export const useAppStore = create(
         darkMode: state.darkMode,
         darkModeInitialized: state.darkModeInitialized,
         language: state.language,
+        pushEnabled: state.pushEnabled,
+        pushToken: state.pushToken,
       }),
     }
   )
