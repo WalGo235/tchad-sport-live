@@ -4,9 +4,11 @@ import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function FavoritesScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const { teams, favorites, removeFavorite, setTeams } = useAppStore();
   const [loading, setLoading] = useState(true);
@@ -61,14 +63,14 @@ export default function FavoritesScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>❤️ Mes Favoris</Text>
+        <Text style={styles.title}>{t('myFavoriteTeams')}</Text>
       </View>
 
       {favoriteTeams.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>📭</Text>
-          <Text style={styles.emptyText}>Aucune équipe favorite</Text>
-          <Text style={styles.emptySubtext}>Ajoutez vos équipes préférées pour les suivre</Text>
+          <Text style={styles.emptyText}>{t('noFavorites')}</Text>
+          <Text style={styles.emptySubtext}>{t('noFavoritesSubtext')}</Text>
         </View>
       ) : (
         <FlatList
