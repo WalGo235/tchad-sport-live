@@ -4,9 +4,11 @@ import { supabase } from '../config/supabase';
 import { useAppStore } from '../store/appStore';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function SignUpScreen({ navigation }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,11 +19,11 @@ export default function SignUpScreen({ navigation }) {
 
   const handleSignUp = async () => {
     if (!email || !password) {
-      setError('Renseigne ton email et ton mot de passe.');
+      setError(t('fillEmailPassword'));
       return;
     }
     if (password.length < 6) {
-      setError('Le mot de passe doit faire au moins 6 caractères.');
+      setError(t('passwordTooShortError'));
       return;
     }
     setError(null);
@@ -46,12 +48,10 @@ export default function SignUpScreen({ navigation }) {
   if (confirmationSent) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Vérifie ta boîte mail</Text>
-        <Text style={styles.info}>
-          Un email de confirmation a été envoyé à {email}. Clique sur le lien pour activer ton compte, puis reviens te connecter.
-        </Text>
+        <Text style={styles.title}>{t('checkEmailTitle')}</Text>
+        <Text style={styles.info}>{t('checkEmailMessage', { email })}</Text>
         <TouchableOpacity style={styles.button} onPress={() => navigation.replace('Login')}>
-          <Text style={styles.buttonText}>Aller à la connexion</Text>
+          <Text style={styles.buttonText}>{t('goToLoginButton')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -59,13 +59,13 @@ export default function SignUpScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Text style={styles.title}>Créer un compte</Text>
+      <Text style={styles.title}>{t('signup')}</Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder={t('emailPlaceholder')}
         placeholderTextColor={colors.textMuted}
         value={email}
         onChangeText={setEmail}
@@ -74,7 +74,7 @@ export default function SignUpScreen({ navigation }) {
       />
       <TextInput
         style={styles.input}
-        placeholder="Mot de passe (6 caractères minimum)"
+        placeholder={t('passwordMinLengthPlaceholder')}
         placeholderTextColor={colors.textMuted}
         value={password}
         onChangeText={setPassword}
@@ -82,11 +82,11 @@ export default function SignUpScreen({ navigation }) {
       />
 
       <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Créer un compte</Text>}
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('signup')}</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.link}>Déjà un compte ? Se connecter</Text>
+        <Text style={styles.link}>{t('alreadyHaveAccount')}</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
   );
