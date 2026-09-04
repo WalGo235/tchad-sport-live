@@ -3,6 +3,8 @@ import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Switch, Alert } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/appStore';
 import { supabase } from '../config/supabase';
+import { apiService } from '../services/api';
+import { registerForPushNotificationsAsync } from '../notifications';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -12,6 +14,10 @@ export default function SettingsScreen({ navigation }) {
   const { t, language, setLanguage } = useLanguage();
   const styles = createStyles(colors);
   const user = useAppStore((state) => state.user);
+  const pushEnabled = useAppStore((state) => state.pushEnabled);
+  const pushToken = useAppStore((state) => state.pushToken);
+  const setPushEnabled = useAppStore((state) => state.setPushEnabled);
+  const setPushToken = useAppStore((state) => state.setPushToken);
 
   const handleSignOut = async () => {
     Alert.alert(t('logout'), 'Tu veux vraiment te déconnecter ?', [
@@ -22,6 +28,33 @@ export default function SettingsScreen({ navigation }) {
         onPress: () => supabase.auth.signOut(),
       },
     ]);
+  };
+
+  const handleToggleNotifications = async (value) => {
+    if (value) {
+      const token = await registerForPushNotificationsAsync();
+      if (token) {
+        try {
+          await apiService.registerPushToken(token);
+          setPushToken(token);
+          setPushEnabled(true);
+        } catch (error) {
+          console.error('Error registering push token:', error);
+        }
+      } else {
+        Alert.alert(t('notifications'), t('notificationPermissionDenied'));
+      }
+    } else {
+      if (pushToken) {
+        try {
+          await apiService.deletePushToken(pushToken);
+        } catch (error) {
+          console.error('Error deleting push token:', error);
+        }
+      }
+      setPushToken(null);
+      setPushEnabled(false);
+    }
   };
 
   return (
@@ -47,7 +80,8 @@ export default function SettingsScreen({ navigation }) {
               <Text style={styles.settingDescription}>{t('realtimeNotificationsDesc')}</Text>
             </View>
             <Switch
-              value={true}
+              value={pushEnabled}
+              onValueChange={handleToggleNotifications}
               trackColor={{ false: colors.border, true: brand.blue }}
             />
           </View>
