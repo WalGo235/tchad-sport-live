@@ -5,9 +5,11 @@ import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function NewsScreen({ navigation }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const { news, setNews } = useAppStore();
   const [loading, setLoading] = useState(true);
@@ -59,7 +61,7 @@ export default function NewsScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>📰 Actualités</Text>
+          <Text style={styles.title}>📰 {t('news')}</Text>
         </View>
 
         <FlatList
