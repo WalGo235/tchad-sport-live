@@ -5,9 +5,11 @@ import { apiService } from '../services/api';
 import CommentSection from '../components/CommentSection';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function ArticleDetailScreen({ route }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const { articleId } = route.params;
   const [article, setArticle] = useState(null);
@@ -38,7 +40,7 @@ export default function ArticleDetailScreen({ route }) {
   if (!article) {
     return (
       <View style={styles.container}>
-        <Text style={styles.emptyText}>Article introuvable</Text>
+        <Text style={styles.emptyText}>{t('articleNotFound')}</Text>
       </View>
     );
   }
