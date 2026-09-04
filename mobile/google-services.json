@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "726987426059",
+    "project_id": "tchad-sport-live",
+    "storage_bucket": "tchad-sport-live.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:726987426059:android:f1f76f4f64eaa73293ba0e",
+        "android_client_info": {
+          "package_name": "com.walgo235.tchadsportlive"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRP1M9vYn3Uv_YnAq4SfTLcseTiF2hSS4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
