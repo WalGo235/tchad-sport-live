@@ -4,9 +4,11 @@ import { supabase } from '../config/supabase';
 import { useAppStore } from '../store/appStore';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function LoginScreen({ navigation }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,7 +18,7 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setError('Renseigne ton email et ton mot de passe.');
+      setError(t('fillEmailPassword'));
       return;
     }
     setError(null);
@@ -36,13 +38,13 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Text style={styles.title}>Connexion</Text>
+      <Text style={styles.title}>{t('login')}</Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder={t('emailPlaceholder')}
         placeholderTextColor={colors.textMuted}
         value={email}
         onChangeText={setEmail}
@@ -51,7 +53,7 @@ export default function LoginScreen({ navigation }) {
       />
       <TextInput
         style={styles.input}
-        placeholder="Mot de passe"
+        placeholder={t('passwordPlaceholder')}
         placeholderTextColor={colors.textMuted}
         value={password}
         onChangeText={setPassword}
@@ -59,11 +61,11 @@ export default function LoginScreen({ navigation }) {
       />
 
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Se connecter</Text>}
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('login')}</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-        <Text style={styles.link}>Pas encore de compte ? Créer un compte</Text>
+        <Text style={styles.link}>{t('noAccountYet')}</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
   );
