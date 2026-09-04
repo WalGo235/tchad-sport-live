@@ -3,9 +3,11 @@ import { View, ScrollView, StyleSheet, Text, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function AboutScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
 
   return (
@@ -15,30 +17,26 @@ export default function AboutScreen() {
           <Image source={require('../../assets/images/icon.png')} style={styles.logo} />
         </View>
 
-        <Text style={styles.appName}>TchadSportLive</Text>
-        <Text style={styles.tagline}>Par les Tchadiens. Pour le Tchad.</Text>
+        <Text style={styles.appName}>{t('appTitle')}</Text>
+        <Text style={styles.tagline}>{t('aboutTagline')}</Text>
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Notre mission</Text>
-          <Text style={styles.paragraph}>
-            TchadSportLive réinvente la couverture sportive au Tchad. Notre mission : connecter les
-            communautés sportives, valoriser les talents locaux et amplifier la voix du sport
-            tchadien — pour toutes les disciplines, pas seulement le football.
-          </Text>
+          <Text style={styles.sectionTitle}>{t('missionTitle')}</Text>
+          <Text style={styles.paragraph}>{t('missionText')}</Text>
         </View>
 
         <View style={styles.card}>
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Version</Text>
+            <Text style={styles.infoLabel}>{t('versionLabel')}</Text>
             <Text style={styles.infoValue}>1.0.0</Text>
           </View>
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Développeur</Text>
+            <Text style={styles.infoLabel}>{t('developerLabel')}</Text>
             <Text style={styles.infoValue}>TchadSportLive</Text>
           </View>
         </View>
 
-        <Text style={styles.footerText}>© 2026 TchadSportLive. Tous droits réservés.</Text>
+        <Text style={styles.footerText}>{t('footer')}</Text>
       </ScrollView>
     </SafeAreaView>
   );
