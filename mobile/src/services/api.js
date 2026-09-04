@@ -61,7 +61,6 @@ export const apiService = {
     return data;
   },
 
-  // Commentaires (polymorphe : target_type = 'match' | 'article' | 'comment' pour les likes)
   async getComments(targetType, targetId) {
     const { data, error } = await supabase
       .from('comments')
@@ -97,7 +96,6 @@ export const apiService = {
     if (error) throw error;
   },
 
-  // Forum libre
   async getForumTopics() {
     const { data, error } = await supabase.from('forum_topics').select('*').order('created_at', { ascending: false });
     if (error) throw error;
@@ -146,7 +144,6 @@ export const apiService = {
     return data;
   },
 
-  // Likes (polymorphe : 'comment' | 'topic' | 'reply')
   async getLikesForTargets(targetType, targetIds) {
     if (!targetIds.length) return [];
     const { data, error } = await supabase
@@ -181,5 +178,21 @@ export const apiService = {
       if (error) throw error;
       return true;
     }
+  },
+
+  async registerPushToken(token) {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from('push_tokens')
+      .upsert(
+        { token, user_id: user?.id ?? null, updated_at: new Date().toISOString() },
+        { onConflict: 'token' }
+      );
+    if (error) throw error;
+  },
+
+  async deletePushToken(token) {
+    const { error } = await supabase.from('push_tokens').delete().eq('token', token);
+    if (error) throw error;
   },
 };
