@@ -5,9 +5,11 @@ import { useAppStore } from '../store/appStore';
 import { apiService } from '../services/api';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function TeamsScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const { teams, setTeams, favorites, addFavorite, removeFavorite } = useAppStore();
   const [loading, setLoading] = useState(true);
@@ -63,8 +65,8 @@ export default function TeamsScreen() {
         </View>
         
         <View style={styles.teamInfo}>
-          <Text style={styles.infoLabel}>Entraîneur: <Text style={styles.infoValue}>{item.head_coach || 'N/A'}</Text></Text>
-          <Text style={styles.infoLabel}>Stade: <Text style={styles.infoValue}>{item.stadium_name || 'N/A'}</Text></Text>
+          <Text style={styles.infoLabel}>{t('coachLabel')}<Text style={styles.infoValue}>{item.head_coach || t('notAvailable')}</Text></Text>
+          <Text style={styles.infoLabel}>{t('stadiumLabel')}<Text style={styles.infoValue}>{item.stadium_name || t('notAvailable')}</Text></Text>
         </View>
       </TouchableOpacity>
     );
@@ -74,8 +76,8 @@ export default function TeamsScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>⚽ Équipes</Text>
-          <Text style={styles.subtitle}>Division 1 Tchadienne</Text>
+          <Text style={styles.title}>{t('teamsTitle')}</Text>
+          <Text style={styles.subtitle}>{t('teamsSubtitle')}</Text>
         </View>
 
         <FlatList
