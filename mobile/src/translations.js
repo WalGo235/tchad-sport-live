@@ -91,6 +91,7 @@ export const translations = {
     missionText: "TchadSportLive réinvente la couverture sportive au Tchad. Notre mission : connecter les communautés sportives, valoriser les talents locaux et amplifier la voix du sport tchadien — pour toutes les disciplines, pas seulement le football.",
     versionLabel: 'Version',
     developerLabel: 'Développeur',
+    notificationPermissionDenied: "Autorise les notifications dans les réglages de ton téléphone pour activer cette fonctionnalité.",
   },
   en: {
     tabHome: 'Home',
@@ -184,6 +185,7 @@ export const translations = {
     missionText: 'TchadSportLive is reinventing sports coverage in Chad. Our mission: connect sports communities, showcase local talent, and amplify the voice of Chadian sport — across every discipline, not just football.',
     versionLabel: 'Version',
     developerLabel: 'Developer',
+    notificationPermissionDenied: 'Allow notifications in your phone settings to enable this feature.',
   },
   ar: {
     tabHome: 'الرئيسية',
@@ -277,5 +279,6 @@ export const translations = {
     missionText: 'تعيد TchadSportLive تصور التغطية الرياضية في تشاد. مهمتنا: ربط المجتمعات الرياضية، وإبراز المواهب المحلية، وتضخيم صوت الرياضة التشادية — لجميع الرياضات، وليس كرة القدم فقط.',
     versionLabel: 'الإصدار',
     developerLabel: 'المطوّر',
+    notificationPermissionDenied: 'اسمح بالإشعارات في إعدادات هاتفك لتفعيل هذه الميزة.',
   },
 };
