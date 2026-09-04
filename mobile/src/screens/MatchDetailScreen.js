@@ -5,9 +5,11 @@ import { supabase } from '../config/supabase';
 import CommentSection from '../components/CommentSection';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function MatchDetailScreen({ route }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const { matchId } = route.params;
   const [match, setMatch] = useState(null);
@@ -51,15 +53,15 @@ export default function MatchDetailScreen({ route }) {
   if (!match) {
     return (
       <View style={styles.container}>
-        <Text style={styles.emptyText}>Match introuvable</Text>
+        <Text style={styles.emptyText}>{t('matchNotFound')}</Text>
       </View>
     );
   }
 
   const getStatusLabel = (status) => {
-    if (status === 'scheduled') return 'Programmé';
-    if (status === 'live') return 'EN DIRECT';
-    return 'Terminé';
+    if (status === 'scheduled') return t('statusScheduled');
+    if (status === 'live') return t('statusLive');
+    return t('statusFinished');
   };
 
   return (
@@ -82,8 +84,8 @@ export default function MatchDetailScreen({ route }) {
 
       <View style={styles.infoCard}>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Stade</Text>
-          <Text style={styles.infoValue}>{match.venue || 'Non renseigné'}</Text>
+          <Text style={styles.infoLabel}>{t('stadium')}</Text>
+          <Text style={styles.infoValue}>{match.venue || t('venueNotProvided')}</Text>
         </View>
       </View>
 
