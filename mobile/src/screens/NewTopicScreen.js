@@ -3,9 +3,11 @@ import { View, StyleSheet, Text, TextInput, TouchableOpacity, ActivityIndicator,
 import { apiService } from '../services/api';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function NewTopicScreen({ navigation }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -14,7 +16,7 @@ export default function NewTopicScreen({ navigation }) {
 
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) {
-      setError('Renseigne un titre et un message.');
+      setError(t('topicFormError'));
       return;
     }
     setError(null);
@@ -31,19 +33,19 @@ export default function NewTopicScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Text style={styles.label}>Titre</Text>
+      <Text style={styles.label}>{t('topicTitleLabel')}</Text>
       <TextInput
         style={styles.input}
-        placeholder="De quoi veux-tu parler ?"
+        placeholder={t('topicTitlePlaceholder')}
         placeholderTextColor={colors.textMuted}
         value={title}
         onChangeText={setTitle}
       />
 
-      <Text style={styles.label}>Message</Text>
+      <Text style={styles.label}>{t('topicMessageLabel')}</Text>
       <TextInput
         style={[styles.input, styles.textArea]}
-        placeholder="Écris ton message..."
+        placeholder={t('topicMessagePlaceholder')}
         placeholderTextColor={colors.textMuted}
         value={content}
         onChangeText={setContent}
@@ -54,7 +56,7 @@ export default function NewTopicScreen({ navigation }) {
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={posting}>
-        {posting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Publier le sujet</Text>}
+        {posting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('publishTopicButton')}</Text>}
       </TouchableOpacity>
     </KeyboardAvoidingView>
   );
