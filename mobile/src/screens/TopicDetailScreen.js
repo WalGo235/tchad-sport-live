@@ -5,9 +5,11 @@ import { supabase } from '../config/supabase';
 import { useAppStore } from '../store/appStore';
 import { brand } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function TopicDetailScreen({ route }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = createStyles(colors);
   const { topicId } = route.params;
   const user = useAppStore((state) => state.user);
@@ -99,7 +101,7 @@ export default function TopicDetailScreen({ route }) {
   if (!topic) {
     return (
       <View style={styles.container}>
-        <Text style={styles.emptyText}>Sujet introuvable</Text>
+        <Text style={styles.emptyText}>{t('topicNotFound')}</Text>
       </View>
     );
   }
@@ -122,7 +124,9 @@ export default function TopicDetailScreen({ route }) {
       </View>
 
       <View style={styles.repliesSection}>
-        <Text style={styles.repliesTitle}>{replies.length} réponse{replies.length > 1 ? 's' : ''}</Text>
+        <Text style={styles.repliesTitle}>
+          {replies.length} {replies.length > 1 ? t('repliesPlural') : t('replySingular')}
+        </Text>
 
         {replies.map((reply) => {
           const replyLikes = likesByItem[reply.id] || { count: 0, likedByMe: false };
@@ -145,18 +149,18 @@ export default function TopicDetailScreen({ route }) {
           <View style={styles.inputRow}>
             <TextInput
               style={styles.input}
-              placeholder="Répondre..."
+              placeholder={t('replyPlaceholder')}
               placeholderTextColor={colors.textMuted}
               value={newReply}
               onChangeText={setNewReply}
               multiline
             />
             <TouchableOpacity style={styles.postButton} onPress={handleReply} disabled={posting || !newReply.trim()}>
-              {posting ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.postButtonText}>Envoyer</Text>}
+              {posting ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.postButtonText}>{t('send')}</Text>}
             </TouchableOpacity>
           </View>
         ) : (
-          <Text style={styles.loginPrompt}>Connecte-toi (onglet Profil) pour répondre.</Text>
+          <Text style={styles.loginPrompt}>{t('loginToReply')}</Text>
         )}
       </View>
     </ScrollView>
