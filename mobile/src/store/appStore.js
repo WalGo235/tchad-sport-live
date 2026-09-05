@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import safeStorage from './safeStorage';
 
 export const useAppStore = create(
   persist(
@@ -36,7 +36,7 @@ export const useAppStore = create(
     }),
     {
       name: 'tchadsportlive-storage',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => safeStorage),
       partialize: (state) => ({
         favorites: state.favorites,
         darkMode: state.darkMode,
