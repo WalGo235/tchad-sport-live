@@ -8,8 +8,6 @@ import { supabase } from '../config/supabase';
 import { spacing } from '../theme';
 import { useLanguage } from '../contexts/LanguageContext';
 
-// Palette fixe, alignée sur le site web (cet écran reste sombre, comme tchadsportlive.com,
-// indépendamment du réglage clair/sombre du reste de l'appli)
 const web = {
   background: '#0A0E17',
   card: '#141B2E',
@@ -220,7 +218,7 @@ const styles = StyleSheet.create({
   statusPillText: { fontSize: 10, fontWeight: '700', color: web.textPrimary },
   teamsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   teamBlock: { flex: 1, alignItems: 'center' },
-  teamLogo: { width: 44, height: 44, marginBottom: spacing.xs },
+  teamLogo: { width: 44, height: 44, borderRadius: 22, marginBottom: spacing.xs },
   teamLogoPlaceholder: { width: 44, height: 44, borderRadius: 22, backgroundColor: web.gray, marginBottom: spacing.xs, alignItems: 'center', justifyContent: 'center' },
   teamLogoInitial: { color: web.textPrimary, fontWeight: '700', fontSize: 16 },
   teamName: { fontSize: 12, fontWeight: '600', color: web.textPrimary, textAlign: 'center' },
