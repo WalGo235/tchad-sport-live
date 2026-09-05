@@ -16,7 +16,7 @@ export const apiService = {
   async getMatches() {
     const { data, error } = await supabase
       .from('matches')
-      .select('*, home_team:teams!home_team_id(name, logo_url), away_team:teams!away_team_id(name, logo_url)')
+      .select('*, home_team:teams!home_team_id(name, logo_url), away_team:teams!away_team_id(name, logo_url), competition:competitions(name)')
       .order('match_date', { ascending: false });
     if (error) throw error;
     return data;
@@ -25,7 +25,7 @@ export const apiService = {
   async getMatchById(id) {
     const { data, error } = await supabase
       .from('matches')
-      .select('*, home_team:teams!home_team_id(name, logo_url), away_team:teams!away_team_id(name, logo_url)')
+      .select('*, home_team:teams!home_team_id(name, logo_url), away_team:teams!away_team_id(name, logo_url), competition:competitions(name)')
       .eq('id', id)
       .single();
     if (error) throw error;
