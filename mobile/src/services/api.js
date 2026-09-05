@@ -32,6 +32,49 @@ export const apiService = {
     return data;
   },
 
+  async getMatchEvents(matchId) {
+    const { data, error } = await supabase
+      .from('match_events')
+      .select('*, player:players(name), assist_player:players!assist_player_id(name)')
+      .eq('match_id', matchId);
+    if (error) throw error;
+    // minute est stocké en texte (peut contenir "45+2"), donc tri numérique manuel plutôt que côté base
+    return (data || []).sort((a, b) => parseInt(a.minute, 10) - parseInt(b.minute, 10));
+  },
+
+  async getMatchStats(matchId) {
+    const { data, error } = await supabase
+      .from('match_stats')
+      .select('*')
+      .eq('match_id', matchId)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async getMatchLineups(matchId) {
+    const { data, error } = await supabase
+      .from('match_lineups')
+      .select('*, player:players(name)')
+      .eq('match_id', matchId)
+      .eq('is_starter', true);
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getHeadToHead(homeTeamId, awayTeamId, excludeMatchId) {
+    const { data, error } = await supabase
+      .from('matches')
+      .select('*, home_team:teams!home_team_id(name), away_team:teams!away_team_id(name)')
+      .or(`and(home_team_id.eq.${homeTeamId},away_team_id.eq.${awayTeamId}),and(home_team_id.eq.${awayTeamId},away_team_id.eq.${homeTeamId})`)
+      .eq('status', 'finished')
+      .neq('id', excludeMatchId)
+      .order('match_date', { ascending: false })
+      .limit(5);
+    if (error) throw error;
+    return data || [];
+  },
+
   async getPlayers(teamId = null) {
     let query = supabase.from('players').select('*');
     if (teamId) query = query.eq('team_id', teamId);
